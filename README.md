@@ -1,6 +1,6 @@
 # New Kids On The Blog
 
-## CPSC-476 Blog Microservice
+### CPSC-476 Blog Microservice
 
 ### Team Members
 
