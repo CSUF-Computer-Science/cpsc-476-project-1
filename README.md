@@ -1,6 +1,8 @@
-# CPSC-476 Blog Microservice
+# New Kids On The Blog
 
-## Team Members
+## CPSC-476 Blog Microservice
+
+### Team Members
 
 * Dayna Anderson
 * Joshua Ferrara
