@@ -95,3 +95,21 @@ stages:
         article_id: /articles/1
         tags:
           - databases
+
+  - name: Add tag to a nonexistent article
+    request:
+      url: http://localhost:5002/tags/sql
+      auth:
+        - testuser
+        - testpassword
+      json:
+        article_id: /articles/9001
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 404
+      headers:
+        content-type: application/json
+      body:
+        error: article does not exist
