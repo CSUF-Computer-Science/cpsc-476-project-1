@@ -14,11 +14,14 @@ def register_user():
         password = request.get_json()["password"]
         full_name = request.get_json()["full_name"]
         db = database.get_db()
-        if db.execute("SELECT username FROM users WHERE username=(?);", [username,]) != None:
-             database.close_db()
-             message = jsonify({"error":"HTTP 409 Conflict"})
-             message.status_code = 409
-             return message
+        print(username, password)
+       
+        for row in db.execute("SELECT username FROM users WHERE username=(?);", [username,]):
+          if row != None:
+               database.close_db()
+               message = jsonify({"error":"HTTP 409 Conflict"})
+               message.status_code = 409
+               return message
         else:
              db.execute("INSERT INTO users(username, password, full_name) VALUES (?,?,?);", [username, password, full_name])
              db.commit()
@@ -35,14 +38,15 @@ def delete_user():
           password = request.get_json()['password']
           print(username, password)
           db = database.get_db()
-          if db.execute("SELECT username FROM users WHERE username=(?) AND password=(?);", [username, password]) != None:
-               db.execute("DELETE FROM users WHERE username=(?) AND password=(?);", [username, password])
-               db.commit()
-               database.close_db()
-               print("deleted")
-               message = jsonify({"success":"user exists"})
-               message.status_code = 200
-               return message
+          for row in db.execute("SELECT username FROM users WHERE username=(?);", [username,]):
+               if row != None:
+                    db.execute("DELETE FROM users WHERE username=(?) AND password=(?);", [username, password])
+                    db.commit()
+                    database.close_db()
+                    print("deleted")
+                    message = jsonify({"success":"user exists"})
+                    message.status_code = 200
+                    return message
           else:
                message = jsonify({"error":"user doesnt exist"})
                message.status_code = 401
