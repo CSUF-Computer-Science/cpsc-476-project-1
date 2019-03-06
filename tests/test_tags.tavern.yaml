@@ -5,8 +5,8 @@ stages:
     request:
       url: http://localhost:5001/articles/create
       auth:
-        - bobby.tables
-        - hunter2
+        - testuser
+        - testpassword
       json:
         title: Student's name deletes entire database
         content: Lorem ipsum dolor sit amet
@@ -18,14 +18,16 @@ stages:
       headers:
         content-type: application/json
       body:
-        article_id: 1
+        article_id: /articles/1
 
   - name: Add a tag to that article
     request:
-      url: http://localhost:5002/tags/add
+      url: http://localhost:5002/tags/databases
+      auth:
+        - testuser
+        - testpassword
       json:
-        name: databases
-        article_id: 1
+        article_id: /articles/1
       method: POST
       headers:
         content-type: application/json
@@ -33,6 +35,63 @@ stages:
       status_code: 200
       headers:
         content-type: application/json
+      body:
+        article_id: /articles/1
+        tags:
+          - databases
 
+  - name: List articles with databases tag
+    request:
+      url: http://localhost:5002/tags/databases
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      headers:
+        content-type: application/json
+      body:
+        count: 1
+        articles:
+          - /articles/1
 
-    
+  - name: Add another tag to the article
+    request:
+      url: http://localhost:5002/tags/sql
+      auth:
+        - testuser
+        - testpassword
+      json:
+        article_id: /articles/1
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      headers:
+        content-type: application/json
+      body:
+        article_id: /articles/1
+        tags:
+          - databases
+          - sql
+
+  - name: Delete a tag from an article
+    request:
+      url: http://localhost:5002/tags/sql
+      auth:
+        - testuser
+        - testpassword
+      json:
+        article_id: /articles/1
+      method: DELETE
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      headers:
+        content-type: application/json
+      body:
+        article_id: /articles/1
+        tags:
+          - databases
