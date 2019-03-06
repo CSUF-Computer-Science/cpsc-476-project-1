@@ -20,5 +20,6 @@ CREATE TABLE tags (name STRING (16), article INT REFERENCES articles, UNIQUE (na
 
 -- Table: users
 CREATE TABLE users (username STRING (32) PRIMARY KEY ON CONFLICT FAIL, password TEXT, full_name STRING (64));
+INSERT INTO users (username, password, full_name) VALUES ("testuser", "testpassword", "Test User");
 
 PRAGMA foreign_keys = on;
