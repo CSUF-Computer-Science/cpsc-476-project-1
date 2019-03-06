@@ -20,12 +20,12 @@ def not_found(error=None):
     return resp
 
 
-@app.route('/tags/<tagname>', methods['GET','POST','DELETE'])
+@app.route('/tags/<tagname>', methods = ['GET','POST','DELETE'])
 def tagSearch(tagname):
-    mydb = db.get_db()
-
+    
     if request.method=='GET':
-        results = db.execute("SELECT * FROM tags WHERE name=?",[tagname]).fetchall()
+        mydb = db.get_db()
+        results = mydb.execute("SELECT * FROM tags WHERE name=?",[tagname]).fetchall()
         if results:
             resp= jsonify(results)
             resp.status_code=200
@@ -34,7 +34,9 @@ def tagSearch(tagname):
         else:
             db.close_db()
             return not_found()
+
     elif request.method=='POST':
+        mydb = db.get_db()
         content=request.get_json()
         id=content.get('ID'), None
         if id == None:
@@ -44,23 +46,44 @@ def tagSearch(tagname):
         else:
             mydb.execute(
                 'INSERT INTO tags(name, article)''VALUES (?,?)', [id, tagname])
-            db.commit()
-            
+            mydb.commit()
+            tags = mydb.execute("SELECT name FROM tags WHERE article=?",[id]).fetchall()
+            db.close_db()
+            article_id="/articles/"+id
+            results={'article_id':article_id,
+                    'tags':[]}
+            for t in tags:
+                results['tags'].append(t)
+            resp= jsonify(results)
+            resp.status_code=200
+            return resp
 
-
-
-@app.route('/tags/remove', methods=['DELETE'])
-def removeTag():
-    if request.method == 'DELETE':
-        if 'TagName', 'ID' in request.args:
+    elif request.method=='DELETE':
         mydb = db.get_db()
-        tagname = request.args['TagName']
-        id = request.args['ID']
-        print(tagname, id)
-        mydb.execute(
-            'DELETE FROM tags WHERE name=(tagname) AND article=(id)''VALUES (?,?)', [tagname, id])
-        mydb.commit()
-        mydb.close_db()
-        return "Success!"
+        content=request.get_json()
+        id=content.get('ID'), None
+        if id == None:
+            resp=jsonify({ "error": "Error: Missing Arguments. Please specify article id." })
+            resp.status_code=400
+            return resp
         else:
-            return "Error: Missing Arguments. Please specify a TagName and URL. "
+            mydb.execute(
+                'DELETE FROM tags WHERE name=? AND article=?', [tagname, id])
+            mydb.commit()
+            tags = mydb.execute("SELECT name FROM tags WHERE article=?",[id]).fetchall()
+            db.close_db()
+            article_id="/articles/"+id
+            results={'article_id':article_id,
+                    'tags':[]}
+            for t in tags:
+                results['tags'].append(t)
+            resp= jsonify(results)
+            resp.status_code=200
+            return resp
+    else:
+        message:{'message': request.url + " contains no such method.",
+        'status': 405}
+        resp = jsonify(message)
+        resp.status_code = 405
+        return resp
+        
