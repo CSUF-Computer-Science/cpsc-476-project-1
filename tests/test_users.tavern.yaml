@@ -24,7 +24,7 @@ test_name: Test user lifecycle
 stages:
   - name: Make sure users can be created
     request:
-      url: http://localhost:5000/user/register_user
+      url: http://localhost:5000/user/register
       json:
         username: bobby.tables
         password: hunter2
@@ -43,6 +43,9 @@ stages:
   - name: Make sure users can change their passwords
     request:
       url: http://localhost:5000/user/changepw
+      auth:
+        - bobby.tables
+        - hunter2
       json:
         new_password: hunter3
       method: POST
@@ -52,3 +55,30 @@ stages:
       status_code: 200
       headers:
         content-type: application/json
+
+  - name: Make sure users can delete their accounts
+    request:
+      url: http://localhost:5000/user/delete
+      auth:
+        - bobby.tables
+        - hunter3
+      method: DELETE
+    response:
+      status_code: 200
+
+  - name: Make sure passwords can't be changed for nonexistent accounts
+    request:
+      url: http://localhost:5000/user/changepw
+      auth:
+        - bobby.tables
+        - hunter3
+      json:
+        new_password: hunter4
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 403
+      headers:
+        content-type: application/json
+
