@@ -1,6 +1,4 @@
-import sqlite3
-import click
-import sys
+import sqlite3, click, sys
 from flask import g, Flask, Response, jsonify, request
 from .data import db
 app = Flask(__name__, instance_relative_config=True)
@@ -47,7 +45,7 @@ def getArticles(name):
         db.close_db()
         return not_found()
 
-@app.route('/articles/<id>/tags/', methods = ['GET', 'POST', 'DELETE'])
+@app.route('/articles/<id>/tags', methods = ['GET', 'POST', 'DELETE'])
 def tags(id):
     #get all tags connected to an article
     if request.method == 'GET':
@@ -68,7 +66,7 @@ def tags(id):
             return not_found()
 
     #post 1 or more tags to an article
-    if request.method == 'POST':
+    elif request.method == 'POST':
         mydb = db.get_db()
         content = request.get_json()
         tagnames = content.get('TagNames'), None
