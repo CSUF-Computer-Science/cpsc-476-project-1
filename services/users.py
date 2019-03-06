@@ -13,9 +13,7 @@ def register_user():
           username = request.get_json()["username"]
           password = request.get_json()["password"]
           full_name = request.get_json()["full_name"]
-          db = database.get_db()
-          print(username, password)
-       
+          db = database.get_db()       
           for row in db.execute("SELECT username FROM users WHERE username=(?);", [username,]):
                if row != None:
                     database.close_db()

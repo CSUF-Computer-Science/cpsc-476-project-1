@@ -1,6 +1,5 @@
-import sys
+import sys, base64, sqlite3
 from flask import Flask, request, g, jsonify, Response
-import sqlite3
 from .data import db as database, auth
 app = Flask(__name__)
 
@@ -12,10 +11,23 @@ basic_auth.init_app(app)
 @basic_auth.required
 def new_article():
     if request.method == 'POST':
-        print(request)
-        db = database.get_db()
-        
-    return
+        #decoding user authorization
+        user = request.headers['Authorization'].strip().split(' ')
+        username, password = base64.b64decode(user[1]).decode().split(':', 1)
+        db = database.get_db()   
+        db.execute("INSERT INTO articles(title, content, author) VALUES(?,?,?);", [request.get_json()['title'], request.get_json()['content'], username])
+        db.commit()
+        for row in db.execute("SELECT id FROM articles WHERE title=(?) AND author=(?) ORDER BY id DESC;", [request.get_json()['title'], username]):
+            if row != None:
+                print(row)
+                db.commit()
+                database.close_db()
+                message = jsonify({"URL": "http://localhost:5001/articles/"+str(row[0])})
+                message.status_code = 201
+                return message
+        message = jsonify({"URL": "there was an error"})
+        message.status_code = 401
+        return message
 
 @app.route('/article/<int:article_id>', methods=['GET'])#return 200 else 404
 def find_article():
@@ -29,4 +41,4 @@ def edit_article():
     return
 
 if __name__ == '__main__':
-     app.run(host="http://127.0.0.1:5001")
+     app.run("127.0.0.1", "5001")
