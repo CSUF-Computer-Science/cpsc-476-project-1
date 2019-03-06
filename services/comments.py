@@ -1,6 +1,4 @@
-import sqlite3
-import click
-import sys
+import sqlite3, click, sys
 from flask import g, Flask, Response, jsonify, request
 from .data import db
 app = Flask(__name__, instance_relative_config=True)
@@ -28,7 +26,7 @@ def conflict(error=None):
     resp.status_code = 409
     return resp
 
-@app.route('/articles/<id>/comments/', methods = ['GET', 'POST', 'DELETE'])
+@app.route('/articles/<id>/comments', methods = ['GET', 'POST', 'DELETE'])
 def comments(id):
     #get number of comments connected to an article
     if request.method == 'GET':
@@ -39,7 +37,7 @@ def comments(id):
         except:
             e=sys.exc_info()[0]
             return conflict(e)
-        if results>0:
+        if results[0][0]>0:
             resp = jsonify(results)
             resp.status_code = 200
             db.close_db()
@@ -49,11 +47,11 @@ def comments(id):
             return not_found()
             
     #post a new comment on an article
-    if request.method == 'POST':
+    elif request.method == 'POST':
         mydb = db.get_db()
         content = request.get_json()
-        user= content.get('username'), None
-        body= content.get('text'), None
+        user= content.get('username', None)
+        body= content.get('text', None)
         if user == None or body==None:
             resp = jsonify({"error": "Error: Missing Arguments. Please specify Username and Comment Text"})
             resp.status_code = 400
@@ -88,7 +86,7 @@ def comments(id):
     elif request.method == 'DELETE':
         mydb = db.get_db()
         content = request.get_json()
-        comment_id = content.get('CommentId'), None
+        comment_id = content.get('CommentId', None)
         if comment_id == None:
             resp = jsonify({"error": "Error: Missing Arguments. Please specify TagName(s) to add."})
             resp.status_code = 400
