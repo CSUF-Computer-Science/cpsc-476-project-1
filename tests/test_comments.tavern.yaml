@@ -1,0 +1,90 @@
+test_name: Attempt to add comment to nonexistent article.
+
+stages:
+  - name: Make sure a comment cant be made an orphan
+    request:
+      url: http://localhost:5003/comments/
+      auth:
+        - testuser
+        - testpassword
+      json:
+        article_id: /articles/500
+        content: this is a test comment
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 404
+      headers:
+        content-type: application/json
+      body:
+        error: article does not exist
+
+---
+
+test_name: Anonymous comments
+stages:
+  - name: Post an anonymous comment
+    request:
+      url: http://localhost:5003/comments/
+      json:
+        article_id: /articles/1
+        content: this is a test comment
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      headers:
+        content-type: application/json
+      body:
+        author: Anonymous
+        content: this is a test comment
+
+---
+
+test_name: Authenticated comments
+
+stages:
+  - name: Make sure an authenticated comment can be posted
+    request:
+      url: http://localhost:5003/comments/
+      auth:
+        - testuser
+        - testpassword
+      json:
+        article_id: /articles/1
+        content: this is a test authed comment
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      headers:
+        content-type: application/json
+      body:
+        author: testuser
+        content: this is a test authed comment
+
+---
+
+test_name: Retrieve comments
+stages:
+  - name: Make sure comments are retrieved in order
+    request:
+      url: http://localhost:5003/comments/1
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      headers:
+        content-type: application/json
+      body:
+        article_id: '/articles/1'
+        comments:
+          - author: Anonymous
+            content: this is a test comment
+          - author: testuser
+            content: this is a test authed comment
+            
