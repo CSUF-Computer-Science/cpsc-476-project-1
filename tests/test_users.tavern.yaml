@@ -1,0 +1,54 @@
+test_name: Attempt to change password for nonexistent user.
+
+stages:
+  - name: Make sure passwords can not be changed if a user does not exist
+    request:
+      url: http://localhost:5000/user/changepw
+      json:
+        username: bobby.tables
+        password: drop table STUDENTS
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 404
+      headers:
+        content-type: application/json
+      body:
+        error: user does not exist
+
+---
+
+test_name: Test user lifecycle
+
+stages:
+  - name: Make sure users can be created
+    request:
+      url: http://localhost:5000/user/register_user
+      json:
+        username: bobby.tables
+        password: hunter2
+        full_name: Bobby Tables
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      headers:
+        content-type: application/json
+      body:
+        username: bobby.tables
+        full_name: Bobby Tables
+
+  - name: Make sure users can change their passwords
+    request:
+      url: http://localhost:5000/user/changepw
+      json:
+        new_password: hunter3
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      headers:
+        content-type: application/json
