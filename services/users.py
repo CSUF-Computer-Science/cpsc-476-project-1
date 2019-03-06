@@ -10,25 +10,22 @@ basic_auth.init_app(app)
 @app.route('/user/register', methods=['POST'])
 def register_user():
      if request.method == 'POST':
-        username = request.get_json()["username"]
-        password = request.get_json()["password"]
-        full_name = request.get_json()["full_name"]
-        db = database.get_db()
-        print(username, password)
-       
-        for row in db.execute("SELECT username FROM users WHERE username=(?);", [username,]):
-          if row != None:
-               database.close_db()
-               message = jsonify({"error":"HTTP 409 Conflict"})
-               message.status_code = 409
-               return message
-        else:
-             db.execute("INSERT INTO users(username, password, full_name) VALUES (?,?,?);", [username, password, full_name])
-             db.commit()
-             database.close_db()
-             message = jsonify({"success":"username has been registered"})
-             message.status_code = 200
-        return message
+          username = request.get_json()["username"]
+          password = request.get_json()["password"]
+          full_name = request.get_json()["full_name"]
+          db = database.get_db()       
+          for row in db.execute("SELECT username FROM users WHERE username=(?);", [username,]):
+               if row != None:
+                    database.close_db()
+                    message = jsonify({"error":"HTTP 409 Conflict"})
+                    message.status_code = 409
+                    return message
+          db.execute("INSERT INTO users(username, password, full_name) VALUES (?,?,?);", [username, password, full_name])
+          db.commit()
+          database.close_db()
+          message = jsonify({"success":"username has been registered"})
+          message.status_code = 200
+          return message
 
 @app.route('/user/delete', methods=['POST'])
 @basic_auth.required
@@ -47,20 +44,20 @@ def delete_user():
                     message = jsonify({"success":"user exists"})
                     message.status_code = 200
                     return message
-          else:
-               message = jsonify({"error":"user doesnt exist"})
-               message.status_code = 401
-               database.close_db()
-               return message
+               else:
+                    message = jsonify({"error":"user doesnt exist"})
+                    message.status_code = 401
+                    database.close_db()
+                    return message
 
 @app.route('/user/changepw', methods=['POST'])
 # @basic_auth.required
 def change_password():
      if request.method == 'POST':
-        username = request.get_json()['username']
-        password = request.get_json()['password']
-        db = database.get_db()
-        db.close_db()
+          username = request.get_json()['username']
+          password = request.get_json()['password']
+          db = database.get_db()
+          db.close_db()
 
 
 if __name__ == '__main__':
