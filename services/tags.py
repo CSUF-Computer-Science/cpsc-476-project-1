@@ -1,6 +1,6 @@
 import sqlite3
 import click
-from flask import g, Flask, Response, jsonify, request
+from flask import g, Flask, Response, jsonify, Request
 from .data import db
 app = Flask(__name__, instance_relative_config=True)
 app.config["DEBUG"] = True
