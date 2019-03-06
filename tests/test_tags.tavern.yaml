@@ -1,0 +1,38 @@
+test_name: Add an article with a new tag
+
+stages:
+  - name: Create an article
+    request:
+      url: http://localhost:5001/articles/create
+      auth:
+        - bobby.tables
+        - hunter2
+      json:
+        title: Student's name deletes entire database
+        content: Lorem ipsum dolor sit amet
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      headers:
+        content-type: application/json
+      body:
+        article_id: 1
+
+  - name: Add a tag to that article
+    request:
+      url: http://localhost:5002/tags/add
+      json:
+        name: databases
+        article_id: 1
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      headers:
+        content-type: application/json
+
+
+    
