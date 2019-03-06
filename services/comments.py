@@ -142,3 +142,6 @@ def getComments(id, number):
     else:
         db.close_db()
         return not_found()
+
+if __name__ == '__main__':
+    app.run("127.0.0.1", "5003")
