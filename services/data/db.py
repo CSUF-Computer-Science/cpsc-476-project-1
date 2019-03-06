@@ -26,7 +26,7 @@ def init_db():
     with current_app.open_resource('data/schema.sql') as f:
         content = f.read().decode()
         db.executescript(content)
-        db.commit()
+    db.commit()
 
 @click.command('init-db')
 @with_appcontext
