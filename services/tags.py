@@ -1,5 +1,6 @@
 import sqlite3
 import click
+import sys
 from flask import g, Flask, Response, jsonify, request
 from .data import db
 app = Flask(__name__, instance_relative_config=True)
@@ -17,12 +18,26 @@ def not_found(error=None):
     resp.status_code = 404
     return resp
 
+@app.errorhandler(409)
+def conflict(error=None):
+    message = {
+        'status': 409,
+        'message': 'Error: Conflict at ' + request.url+' Code '+error,
+    }
+    resp = jsonify(message)
+    resp.status_code = 409
+    return resp
+
 #get all articles connected to a tag
 @app.route('tags/<name>', methods=['GET'])
 def getArticles(name):
     mydb = db.get_db()
-    results = mydb.execute(
+    try:
+        results = mydb.execute(
             "SELECT * FROM tags WHERE name=?", [name]).fetchall()
+    except:
+            e=sys.exc_info()[0]
+            conflict(e)        
     if results:
         resp = jsonify(results)
         resp.status_code = 200
@@ -37,8 +52,12 @@ def tags(id):
     #get all tags connected to an article
     if request.method == 'GET':
         mydb = db.get_db()
-        results = mydb.execute(
-            "SELECT * FROM tags WHERE article=?", [id]).fetchall()
+        try:
+            results = mydb.execute(
+                "SELECT * FROM tags WHERE article=?", [id]).fetchall()
+        except:
+            e=sys.exc_info()[0]
+            conflict(e)
         if results:
             resp = jsonify(results)
             resp.status_code = 200
@@ -59,12 +78,20 @@ def tags(id):
             return resp
         else:
             for t in tagnames:
-                mydb.execute(
-                'INSERT INTO tags(name, article)''VALUES (?,?)', [id, t])
+                try:
+                    mydb.execute(
+                        'INSERT INTO tags(name, article)''VALUES (?,?)', [id, t])
+                    
+                except:
+                    e=sys.exc_info()[0]
+                    conflict(e)
             mydb.commit()
-            tags = mydb.execute(
-                "SELECT name FROM tags WHERE article=?", [id]).fetchall()
-            mydb.commit()
+            try:
+                tags = mydb.execute(
+                    "SELECT name FROM tags WHERE article=?", [id]).fetchall()
+            except:
+                e=sys.exc_info()[0]
+                conflict(e)    
             db.close_db()
             article_id = "/articles/"+id
             location = article_id + "/tags/"
@@ -88,10 +115,20 @@ def tags(id):
             return resp
         else:
             for t in tagnames:
-                mydb.execute('DELETE FROM tags WHERE name=? AND article=?', [t, id])
+                try:
+                    mydb.execute('DELETE FROM tags WHERE name=? AND article=?', [t, id])
+
+                except:
+                    e=sys.exc_info()[0]
+                    conflict(e)
             mydb.commit()
-            tags = mydb.execute(
-                "SELECT name FROM tags WHERE article=?", [id]).fetchall()
+            try:
+                tags = mydb.execute(
+                    "SELECT name FROM tags WHERE article=?", [id]).fetchall()
+            except:
+                e=sys.exc_info()[0]
+                conflict(e)
+
             db.close_db()
             article_id = "/articles/"+id
             results = {'article_id': article_id,

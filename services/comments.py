@@ -1,5 +1,6 @@
 import sqlite3
 import click
+import sys
 from flask import g, Flask, Response, jsonify, request
 from .data import db
 app = Flask(__name__, instance_relative_config=True)
@@ -17,13 +18,27 @@ def not_found(error=None):
     resp.status_code = 404
     return resp
 
+@app.errorhandler(409)
+def conflict(error=None):
+    message = {
+        'status': 409,
+        'message': 'Error: Conflict at ' + request.url+' Code '+error,
+    }
+    resp = jsonify(message)
+    resp.status_code = 409
+    return resp
+
 @app.route('articles/<id>/comments/', methods = ['GET', 'POST', 'DELETE'])
 def comments(id):
     #get number of comments connected to an article
     if request.method == 'GET':
         mydb = db.get_db()
-        results = mydb.execute(
-            "SELECT COUNT(*) FROM comments WHERE article=?", [id]).fetchall()
+        try: 
+            results = mydb.execute(
+                "SELECT COUNT(*) FROM comments WHERE article=?", [id]).fetchall()
+        except:
+            e=sys.exc_info()[0]
+            conflict(e)
         if results>0:
             resp = jsonify(results)
             resp.status_code = 200
@@ -44,12 +59,19 @@ def comments(id):
             resp.status_code = 400
             return resp
         else:
-            mydb.execute(
-                'INSERT INTO comments(author, content, article)''VALUES (?,?,?)', [user, body, id])
+            try:
+                mydb.execute(
+                    'INSERT INTO comments(author, content, article)''VALUES (?,?,?)', [user, body, id])
+            except:
+                e=sys.exc_info()[0]
+                conflict(e)
             mydb.commit()
-            comments = mydb.execute(
-                "SELECT * FROM comments WHERE article=? ORDER BY posted ASC", [id]).fetchall()
-            mydb.commit()
+            try:
+                comments = mydb.execute(
+                    "SELECT * FROM comments WHERE article=? ORDER BY posted ASC", [id]).fetchall()
+            except:
+                e=sys.exc_info()[0]
+                conflict(e)
             db.close_db()
             article_id = "/articles/"+ id
             location = article_id + "/comments/"
@@ -72,11 +94,18 @@ def comments(id):
             resp.status_code = 400
             return resp
         else:
-            mydb.execute('DELETE FROM comments WHERE id=? AND article=?', [comment_id, id])
+            try:
+                mydb.execute('DELETE FROM comments WHERE id=? AND article=?', [comment_id, id])
+            except:
+                e=sys.exc_info()[0]
+                conflict(e)
             mydb.commit()
-            comments = mydb.execute(
-                "SELECT * FROM comments WHERE article=? ORDER BY posted ASC", [id]).fetchall()
-            db.commit()
+            try: 
+                comments = mydb.execute(
+                    "SELECT * FROM comments WHERE article=? ORDER BY posted ASC", [id]).fetchall()
+            except:
+                e=sys.exc_info()[0]
+                conflict(e)
             db.close_db()
             article_id = "/articles/"+id
             results = {'article_id': article_id,
@@ -98,8 +127,13 @@ def comments(id):
 @app.route('articles/<id>/comments/<number>', methods=['GET'])
 def getComments(id, number):
     mydb = db.get_db()
-    results = mydb.execute(
+    try:
+        results = mydb.execute(
             "SELECT TOP ? * FROM (SELECT * FROM comments WHERE article=? ORDER BY posted ASC)", [number,id]).fetchall()
+    except:
+        e=sys.exc_info()[0]
+        conflict(e)
+        
     if results:
         resp = jsonify(results)
         resp.status_code = 200
