@@ -22,7 +22,7 @@ def not_found(error=None):
 def conflict(error=None):
     message = {
         'status': 409,
-        'message': 'Error: Conflict at ' + request.url+' Code '+error,
+        'message': 'Error: Conflict at ' + request.url +' Code '+ error.message
     }
     resp = jsonify(message)
     resp.status_code = 409
@@ -38,7 +38,7 @@ def comments(id):
                 "SELECT COUNT(*) FROM comments WHERE article=?", [id]).fetchall()
         except:
             e=sys.exc_info()[0]
-            conflict(e)
+            return conflict(e)
         if results>0:
             resp = jsonify(results)
             resp.status_code = 200
@@ -64,14 +64,14 @@ def comments(id):
                     'INSERT INTO comments(author, content, article)''VALUES (?,?,?)', [user, body, id])
             except:
                 e=sys.exc_info()[0]
-                conflict(e)
+                return conflict(e)
             mydb.commit()
             try:
                 comments = mydb.execute(
                     "SELECT * FROM comments WHERE article=? ORDER BY posted ASC", [id]).fetchall()
             except:
                 e=sys.exc_info()[0]
-                conflict(e)
+                return conflict(e)
             db.close_db()
             article_id = "/articles/"+ id
             location = article_id + "/comments/"
@@ -98,14 +98,14 @@ def comments(id):
                 mydb.execute('DELETE FROM comments WHERE id=? AND article=?', [comment_id, id])
             except:
                 e=sys.exc_info()[0]
-                conflict(e)
+                return conflict(e)
             mydb.commit()
             try: 
                 comments = mydb.execute(
                     "SELECT * FROM comments WHERE article=? ORDER BY posted ASC", [id]).fetchall()
             except:
                 e=sys.exc_info()[0]
-                conflict(e)
+                return conflict(e)
             db.close_db()
             article_id = "/articles/"+id
             results = {'article_id': article_id,
@@ -129,10 +129,10 @@ def getComments(id, number):
     mydb = db.get_db()
     try:
         results = mydb.execute(
-            "SELECT TOP ? * FROM (SELECT * FROM comments WHERE article=? ORDER BY posted ASC)", [number,id]).fetchall()
+            "SELECT * FROM (SELECT * FROM comments WHERE article=? ORDER BY posted ASC) LIMIT ?", [number, id]).fetchall()
     except:
         e=sys.exc_info()[0]
-        conflict(e)
+        return conflict(e)
 
     if results:
         resp = jsonify(results)
@@ -143,5 +143,3 @@ def getComments(id, number):
         db.close_db()
         return not_found()
 
-if __name__ == '__main__':
-    app.run("127.0.0.1", "5003")

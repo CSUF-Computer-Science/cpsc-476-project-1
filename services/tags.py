@@ -22,7 +22,7 @@ def not_found(error=None):
 def conflict(error=None):
     message = {
         'status': 409,
-        'message': 'Error: Conflict at ' + request.url+' Code '+error,
+        'message': 'Error: Conflict at ' + request.url +' Code '+ error.message
     }
     resp = jsonify(message)
     resp.status_code = 409
@@ -37,7 +37,7 @@ def getArticles(name):
             "SELECT * FROM tags WHERE name=?", [name]).fetchall()
     except:
             e=sys.exc_info()[0]
-            conflict(e)        
+            return conflict(e)        
     if results:
         resp = jsonify(results)
         resp.status_code = 200
@@ -57,7 +57,7 @@ def tags(id):
                 "SELECT * FROM tags WHERE article=?", [id]).fetchall()
         except:
             e=sys.exc_info()[0]
-            conflict(e)
+            return conflict(e)
         if results:
             resp = jsonify(results)
             resp.status_code = 200
@@ -84,14 +84,14 @@ def tags(id):
                     
                 except:
                     e=sys.exc_info()[0]
-                    conflict(e)
+                    return conflict(e)
             mydb.commit()
             try:
                 tags = mydb.execute(
                     "SELECT name FROM tags WHERE article=?", [id]).fetchall()
             except:
                 e=sys.exc_info()[0]
-                conflict(e)    
+                return conflict(e)    
             db.close_db()
             article_id = "/articles/"+id
             location = article_id + "/tags/"
@@ -120,14 +120,14 @@ def tags(id):
 
                 except:
                     e=sys.exc_info()[0]
-                    conflict(e)
+                    return conflict(e)
             mydb.commit()
             try:
                 tags = mydb.execute(
                     "SELECT name FROM tags WHERE article=?", [id]).fetchall()s
             except:
                 e=sys.exc_info()[0]
-                conflict(e)
+                return conflict(e)
 
             db.close_db()
             article_id = "/articles/"+id
@@ -145,5 +145,3 @@ def tags(id):
         resp.status_code = 405
         return resp
 
-if __name__ == '__main__':
-    app.run("127.0.0.1", "5002")
