@@ -52,14 +52,14 @@ def find_article(article_id):
 @app.route('/article/delete/<int:article_id>', methods=['DELETE']) #200 and 404
 @basic_auth.required
 def delete_article(article_id):
-    if request.method=='DELETE':
+    if request.method == 'DELETE':
         #decoding user authorization
         user = request.headers['Authorization'].strip().split(' ')
         username, password = base64.b64decode(user[1]).decode().split(':', 1)
         db=database.get_db()
-        for row in db.execute("SELECT id FROM articles WHERE id=(?) and author=(?);", [article_id, username]):
+        for row in db.execute("SELECT id FROM articles WHERE id=(?) AND author=(?);", [article_id, username]):
             if row != None:
-                db.execute("DELETE FROM articles WHERE id=(?) and author=(?)", [article_id, username])
+                db.execute("DELETE FROM articles WHERE id=(?) AND author=(?)", [article_id, username])
                 db.commit()
                 database.close_db()
                 message = jsonify({"success":"article deleted"})
@@ -71,11 +71,26 @@ def delete_article(article_id):
         return message
 
 
-@app.route('/article/edit', methods=['POST'])#return 200 or 404
+@app.route('/article/edit/<int:article_id>', methods=['POST'])#return 200 or 404
 @basic_auth.required
-def edit_article():
+def edit_article(article_id):
+    if request.method == 'POST':
+        #decoding user authorization
+        user = request.headers['Authorization'].strip().split(' ')
+        username, password = base64.b64decode(user[1]).decode().split(':', 1)
+        db = database.get_db()
+        for row in db.execute("SELECT id FROM articles WHERE id=(?) AND author=(?);", [article_id, username]):
+            if row != None:
+                db.execute("UPDATE articles SET content=(?), posted=CURRENT_TIMESTAMP WHERE id=(?) AND author=(?);", [request.get_json()['content'], article_id, username])
+                db.commit()
+                database.close_db()
+                message = jsonify({"success":"content updated"})
+                message.status_code=200
+                return message
+        message = jsonify({"error":"could not update content"})
+        message.status_code=404
+        return message
 
-    return
 
 if __name__ == '__main__':
      app.run("127.0.0.1", "5001")
