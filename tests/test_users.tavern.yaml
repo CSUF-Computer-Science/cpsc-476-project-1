@@ -13,7 +13,7 @@ stages:
       headers:
         content-type: application/json
     response:
-      status_code: 403
+      status_code: 401
       headers:
         content-type: application/json
 
@@ -78,7 +78,7 @@ stages:
       headers:
         content-type: application/json
     response:
-      status_code: 403
+      status_code: 401
       headers:
         content-type: application/json
 
