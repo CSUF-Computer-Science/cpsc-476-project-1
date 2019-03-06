@@ -28,7 +28,7 @@ def conflict(error=None):
     resp.status_code = 409
     return resp
 
-@app.route('articles/<id>/comments/', methods = ['GET', 'POST', 'DELETE'])
+@app.route('/articles/<id>/comments/', methods = ['GET', 'POST', 'DELETE'])
 def comments(id):
     #get number of comments connected to an article
     if request.method == 'GET':
@@ -124,7 +124,7 @@ def comments(id):
 
 
 #get n most recent article comments.
-@app.route('articles/<id>/comments/<number>', methods=['GET'])
+@app.route('/articles/<id>/comments/<number>', methods=['GET'])
 def getComments(id, number):
     mydb = db.get_db()
     try:
@@ -133,7 +133,7 @@ def getComments(id, number):
     except:
         e=sys.exc_info()[0]
         conflict(e)
-        
+
     if results:
         resp = jsonify(results)
         resp.status_code = 200

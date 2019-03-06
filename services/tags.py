@@ -29,7 +29,7 @@ def conflict(error=None):
     return resp
 
 #get all articles connected to a tag
-@app.route('tags/<name>', methods=['GET'])
+@app.route('/tags/<name>', methods=['GET'])
 def getArticles(name):
     mydb = db.get_db()
     try:
@@ -47,7 +47,7 @@ def getArticles(name):
         db.close_db()
         return not_found()
 
-@app.route('articles/<id>/tags/', methods = ['GET', 'POST', 'DELETE'])
+@app.route('/articles/<id>/tags/', methods = ['GET', 'POST', 'DELETE'])
 def tags(id):
     #get all tags connected to an article
     if request.method == 'GET':
@@ -124,7 +124,7 @@ def tags(id):
             mydb.commit()
             try:
                 tags = mydb.execute(
-                    "SELECT name FROM tags WHERE article=?", [id]).fetchall()
+                    "SELECT name FROM tags WHERE article=?", [id]).fetchall()s
             except:
                 e=sys.exc_info()[0]
                 conflict(e)
