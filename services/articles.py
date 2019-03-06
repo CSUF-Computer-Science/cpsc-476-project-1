@@ -31,7 +31,6 @@ def new_article():
 @app.route('/article/<int:article_id>', methods=['GET'])#return 200 else 404
 def find_article(article_id):
     if request.method == 'GET':
-        print(article_id)
         db = database.get_db()
         for row in db.execute("SELECT title, content, author, posted FROM articles where id=(?)", [article_id,]):
             if row != None:
@@ -49,6 +48,28 @@ def find_article(article_id):
         message = jsonify({"error":"the article you are looking for is not here"})
         message.status_code = 404
         return message
+
+@app.route('/article/delete/<int:article_id>', methods=['DELETE']) #200 and 404
+@basic_auth.required
+def delete_article(article_id):
+    if request.method=='DELETE':
+        #decoding user authorization
+        user = request.headers['Authorization'].strip().split(' ')
+        username, password = base64.b64decode(user[1]).decode().split(':', 1)
+        db=database.get_db()
+        for row in db.execute("SELECT id FROM articles WHERE id=(?) and author=(?);", [article_id, username]):
+            if row != None:
+                db.execute("DELETE FROM articles WHERE id=(?) and author=(?)", [article_id, username])
+                db.commit()
+                database.close_db()
+                message = jsonify({"success":"article deleted"})
+                message.status_code=200
+                return message
+        database.close_db()
+        message = jsonify({"error":"no such article exists"})
+        message.status_code=404
+        return message
+
 
 @app.route('/article/edit', methods=['POST'])#return 200 or 404
 @basic_auth.required
