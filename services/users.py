@@ -29,25 +29,29 @@ def register_user():
         return message
 
 @app.route('/user/delete', methods=['POST'])
-@basic_auth.authenticate()
+@basic_auth.required
 def delete_user():
      if request.method == 'POST':
           username = request.get_json()['username']
           password = request.get_json()['password']
+          print(username, password)
           db = database.get_db()
-          if db.execute("SELECT username FROM users WHERE (?,?);", username, password) != None:
+          if db.execute("SELECT username FROM users WHERE username=(?) AND password=(?);", [username, password]) != None:
+               db.execute("DELETE FROM users WHERE username=(?) AND password=(?);", [username, password])
                db.commit()
-               db.close_db()
-               message = jsonify({"success":"user has been deleted"})
+               database.close_db()
+               print("deleted")
+               message = jsonify({"success":"user exists"})
                message.status_code = 200
                return message
           else:
-               message = jsonify({"success":"user has been deleted"})
-               message.status_code = 200
+               message = jsonify({"error":"user doesnt exist"})
+               message.status_code = 401
+               database.close_db()
                return message
 
 @app.route('/user/changepw', methods=['POST'])
-@basic_auth.authenticate()
+# @basic_auth.required
 def change_password():
      if request.method == 'POST':
         username = request.get_json()['username']
