@@ -3,7 +3,6 @@ from flask import Flask, request, g
 import sqlite3
 from .data import db as database
 app = Flask(__name__)
-
 database.init_app(app)
 
 
