@@ -64,14 +64,17 @@ def tags(id):
             mydb.commit()
             tags = mydb.execute(
                 "SELECT name FROM tags WHERE article=?", [id]).fetchall()
+            mydb.commit()
             db.close_db()
             article_id = "/articles/"+id
+            location = article_id + "/tags/"
             results = {'article_id': article_id,
                        'tags': []}
             for t in tags:
                 results['tags'].append(t)
             resp = jsonify(results)
-            resp.status_code = 200
+            resp.status_code = 401
+            resp.headers['Location']=location
             return resp
 
     #delete 1 or more tags from an article
