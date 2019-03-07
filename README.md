@@ -32,12 +32,22 @@ To start the virtual environment:
 
 `. venv/bin/activate`
 
+Finally, the database must be initialized. From the top-level directory run the following command:
+
+`foreman run init-db`
+
 ### To Run
-To run a server locally.
 
-On *nix environment:
+Each microservice can be started individually by using the following commands:
 
-```
-export FLASK_APP=services
-flask run
-```
+`foreman run users`
+
+`foreman run articles`
+
+`foreman run tags`
+
+`foreman run comments`
+
+### To Test
+
+From the top-level directory, and with a fresh database created with `foreman run init-db`, tests can be ran with the following command: `py.test`.
