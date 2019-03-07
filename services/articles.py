@@ -36,7 +36,6 @@ def new_article():
         #decoding user authorization
         user = request.headers['Authorization'].strip().split(' ')
         username = base64.b64decode(user[1]).decode().split(':', 1)[0]
-        print(username)
         db = database.get_db()   
         db.execute("INSERT INTO articles(title, content, author) VALUES(?,?,?);", [request.get_json()['title'], request.get_json()['content'], username])
         db.commit()
