@@ -91,6 +91,30 @@ def edit_article(article_id):
         message.status_code=404
         return message
 
+@app.route('/article/collect/<int:recent_articles>', methods=['GET'])#return 200 or 404
+def collect_article(recent_articles):
+    if request.method == 'GET':
+        db = database.get_db()
+        print(recent_articles)
+        collect = list()
+        for row in db.execute("SELECT id, title, content, author, posted FROM articles ORDER BY id DESC LIMIT (?);", [recent_articles,]):
+            if row != None:
+                print(type(row[4]))
+                collect.append({
+                        "URL" : "https://127.0.0.1:5001/articles/"+str(row[0]),
+                        "title" : row[1],
+                        "content" : row[2],
+                        "author" : row[3],
+                        "posted" : row[4]
+                    })
+            else:
+                message = jsonify({"error":"could not find articles"})
+                message.status_code = 404
+                return message
+        message = jsonify({"success":collect})
+        message.status_code = 200
+        return message
+
 
 if __name__ == '__main__':
      app.run("127.0.0.1", "5001")
