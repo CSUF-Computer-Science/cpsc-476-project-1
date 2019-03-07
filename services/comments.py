@@ -1,9 +1,12 @@
 import sqlite3, click, sys
 from flask import g, Flask, Response, jsonify, request
-from .data import db
+from data import db, auth
+
 app = Flask(__name__, instance_relative_config=True)
 app.config["DEBUG"] = True
 db.init_app(app)
+basic_auth = auth.GetAuth()
+basic_auth.init_app(app)
 
 # this function found here: http://blog.luisrei.com/articles/flaskrest.html
 @app.errorhandler(404)
@@ -26,7 +29,7 @@ def conflict(error=None):
     resp.status_code = 409
     return resp
 
-@app.route('/articles/<id>/comments', methods = ['GET', 'POST', 'DELETE'])
+@app.route('/articles/<id>/comments', methods = ['GET', 'POST'])
 def comments(id):
     #get number of comments connected to an article
     if request.method == 'GET':
@@ -81,9 +84,16 @@ def comments(id):
             resp.status_code = 401
             resp.headers['Location']=location
             return resp
+    else:
+        resp = jsonify({'message': request.url + " contains no such method.",
+                  'status': 405})
+        return resp
 
-    #delete comment from an article
-    elif request.method == 'DELETE':
+#delete comment from an article
+@app.route('/articles/<id>/delete_comments', methods = ['DELETE'])
+@basic_auth.required
+def delete_comment(id):
+    if request.method == 'DELETE':
         mydb = db.get_db()
         content = request.get_json()
         comment_id = content.get('CommentId', None)
@@ -114,12 +124,9 @@ def comments(id):
             resp.status_code = 200
             return resp
     else:
-        message: {'message': request.url + " contains no such method.",
-                  'status': 405}
-        resp = jsonify(message)
-        resp.status_code = 405
+        resp = jsonify({'message': request.url + " contains no such method.",
+                  'status': 405})
         return resp
-
 
 #get n most recent article comments.
 @app.route('/articles/<id>/comments/<number>', methods=['GET'])
