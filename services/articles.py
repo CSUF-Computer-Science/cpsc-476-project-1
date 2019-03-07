@@ -7,13 +7,36 @@ database.init_app(app)
 basic_auth = auth.GetAuth()
 basic_auth.init_app(app)
 
-@app.route('/article/new', methods=['POST'])#return 201 with URL in header
+
+# this function found here: http://blog.luisrei.com/articles/flaskrest.html
+@app.errorhandler(404)
+def not_found(error=None):
+    message = {
+        'status': 404,
+        'message': 'Not Found: ' + request.url,
+    }
+    resp = jsonify(message)
+    resp.status_code = 404
+    return resp
+
+@app.errorhandler(409)
+def conflict(error=None):
+    message = {
+        'status': 409,
+        'message': 'Error: Conflict at ' + request.url +' Code '+ error.message
+    }
+    resp = jsonify(message)
+    resp.status_code = 409
+    return resp
+    
+@app.route('/article/new', methods=['POST'])
 @basic_auth.required
 def new_article():
     if request.method == 'POST':
         #decoding user authorization
         user = request.headers['Authorization'].strip().split(' ')
-        username, password = base64.b64decode(user[1]).decode().split(':', 1)
+        username = base64.b64decode(user[1]).decode().split(':', 1)[0]
+        print(username)
         db = database.get_db()   
         db.execute("INSERT INTO articles(title, content, author) VALUES(?,?,?);", [request.get_json()['title'], request.get_json()['content'], username])
         db.commit()
@@ -21,7 +44,7 @@ def new_article():
             if row != None:
                 db.commit()
                 database.close_db()
-                message = jsonify({"URL" : "http://localhost:5001/articles/"+str(row[0])})
+                message = jsonify({"url" : "http://localhost:5001/articles/"+str(row[0])})
                 message.status_code = 201
                 return message
         message = jsonify({"error": "could not post article at this time"})
@@ -49,13 +72,13 @@ def find_article(article_id):
         message.status_code = 404
         return message
 
-@app.route('/article/delete/<int:article_id>', methods=['DELETE']) #200 and 404
+@app.route('/article/delete/<int:article_id>', methods=['DELETE'])
 @basic_auth.required
 def delete_article(article_id):
     if request.method == 'DELETE':
         #decoding user authorization
         user = request.headers['Authorization'].strip().split(' ')
-        username, password = base64.b64decode(user[1]).decode().split(':', 1)
+        username = base64.b64decode(user[1]).decode().split(':', 1)[0]
         db=database.get_db()
         for row in db.execute("SELECT id FROM articles WHERE id=(?) AND author=(?);", [article_id, username]):
             if row != None:
@@ -71,13 +94,13 @@ def delete_article(article_id):
         return message
 
 
-@app.route('/article/edit/<int:article_id>', methods=['POST'])#return 200 or 404
+@app.route('/article/edit/<int:article_id>', methods=['POST'])
 @basic_auth.required
 def edit_article(article_id):
     if request.method == 'POST':
         #decoding user authorization
         user = request.headers['Authorization'].strip().split(' ')
-        username, password = base64.b64decode(user[1]).decode().split(':', 1)
+        username = base64.b64decode(user[1]).decode().split(':', 1)[0]
         db = database.get_db()
         for row in db.execute("SELECT id FROM articles WHERE id=(?) AND author=(?);", [article_id, username]):
             if row != None:
@@ -91,29 +114,52 @@ def edit_article(article_id):
         message.status_code=404
         return message
 
-@app.route('/article/collect/<int:recent_articles>', methods=['GET'])#return 200 or 404
+@app.route('/article/collect/<int:recent_articles>', methods=['GET'])
 def collect_article(recent_articles):
     if request.method == 'GET':
         db = database.get_db()
         print(recent_articles)
         collect = list()
+        if recent_articles == 0:
+            message = jsonify({"error":"not going to attempt to retrieve zero articles"})
+            message.status_code = 404
+            return message
         for row in db.execute("SELECT id, title, content, author, posted FROM articles ORDER BY id DESC LIMIT (?);", [recent_articles,]):
             if row != None:
-                print(type(row[4]))
                 collect.append({
-                        "URL" : "https://127.0.0.1:5001/articles/"+str(row[0]),
+                        "url" : "http://127.0.0.1:5001/articles/"+str(row[0]),
                         "title" : row[1],
                         "content" : row[2],
                         "author" : row[3],
                         "posted" : row[4]
                     })
-            else:
-                message = jsonify({"error":"could not find articles"})
-                message.status_code = 404
-                return message
         message = jsonify({"success":collect})
         message.status_code = 200
         return message
+
+@app.route('/article/meta/<int:recent_articles>')
+def meta_articles(recent_articles):
+    if request.method == 'GET':
+            db = database.get_db()
+            print(recent_articles)
+            collect = list()
+            if recent_articles == 0:
+                message = jsonify({"error":"not going to attempt to retrieve zero articles"})
+                message.status_code = 404
+                return message
+            for row in db.execute("SELECT id, title, content, author, posted FROM articles ORDER BY id DESC LIMIT (?);", [recent_articles,]):
+                if row != None:
+                    collect.append({
+                            "url" : "<url>http://127.0.0.1:5001/articles/"+str(row[0])+"</url>",
+                            "title" : "<title>"+row[1]+"</title>",
+                            "author" : "<author>"+row[3]+"</author>",
+                            "posted" : "<pubDate>"+row[4]+"</pubDate>",
+                            "comments" : "<comments>http://127.0.0.1:5001/articles/"+str(row[0])+"/comments</comments>",
+                            "category" : "<category>http://127.0.0.1:5001/articles/"+str(row[0])+"/tags</category>"
+                        })
+            message = jsonify({"success":collect})
+            message.status_code = 200
+            return message
 
 
 if __name__ == '__main__':
