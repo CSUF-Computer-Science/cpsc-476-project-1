@@ -1,7 +1,7 @@
 import sys
 from flask import Flask, request, g, jsonify, Response
 import sqlite3
-from data import db as database, auth
+from .data import db as database, auth
 app = Flask(__name__)
 database.init_app(app)
 basic_auth = auth.GetAuth()

@@ -122,7 +122,7 @@ def tags(id):
             mydb.commit()
             try:
                 tags = mydb.execute(
-                    "SELECT name FROM tags WHERE article=?", [id]).fetchall()s
+                    "SELECT name FROM tags WHERE article=?", [id]).fetchall()
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
