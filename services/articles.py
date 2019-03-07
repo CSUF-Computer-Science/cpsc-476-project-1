@@ -43,7 +43,10 @@ def new_article():
             if row != None:
                 db.commit()
                 database.close_db()
-                message = jsonify({"url" : "http://localhost:5001/articles/"+str(row[0])})
+                message = jsonify({
+                    "url" : "/articles/"+str(row[0]),
+                    "id": row[0]
+                })
                 message.status_code = 201
                 return message
         message = jsonify({"error": "could not post article at this time"})
