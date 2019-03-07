@@ -137,7 +137,7 @@ def collect_article(recent_articles):
         message.status_code = 200
         return message
 
-@app.route('/article/meta/<int:recent_articles>')
+@app.route('/article/meta/<int:recent_articles>', methods=['GET'])
 def meta_articles(recent_articles):
     if request.method == 'GET':
             db = database.get_db()
