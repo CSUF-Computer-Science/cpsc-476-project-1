@@ -5,17 +5,15 @@ stages:
     request:
       url: http://localhost:5000/user/changepw
       auth:
-        - bobby.tables
-        - hunter2
+        - im.a.fake.username
+        - password
       json:
-        password: hunter3
+        password: newpassword
       method: POST
       headers:
         content-type: application/json
     response:
       status_code: 401
-      headers:
-        content-type: application/json
 
 ---
 
@@ -37,8 +35,7 @@ stages:
       headers:
         content-type: application/json
       body:
-        username: bobby.tables
-        full_name: Bobby Tables
+        success: username has been registered
 
   - name: Make sure users can change their passwords
     request:
@@ -47,7 +44,7 @@ stages:
         - bobby.tables
         - hunter2
       json:
-        new_password: hunter3
+        password: hunter3
       method: POST
       headers:
         content-type: application/json
@@ -62,7 +59,7 @@ stages:
       auth:
         - bobby.tables
         - hunter3
-      method: DELETE
+      method: POST
     response:
       status_code: 200
 
@@ -79,6 +76,4 @@ stages:
         content-type: application/json
     response:
       status_code: 401
-      headers:
-        content-type: application/json
 
