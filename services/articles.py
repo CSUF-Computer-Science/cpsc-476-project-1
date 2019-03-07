@@ -7,7 +7,7 @@ database.init_app(app)
 basic_auth = auth.GetAuth()
 basic_auth.init_app(app)
 
-@app.route('/article/new', methods=['POST'])#return 201 with URL in header
+@app.route('/article/new', methods=['POST'])#return 201 with url in header
 @basic_auth.required
 def new_article():
     if request.method == 'POST':
@@ -21,7 +21,7 @@ def new_article():
             if row != None:
                 db.commit()
                 database.close_db()
-                message = jsonify({"URL" : "http://localhost:5001/articles/"+str(row[0])})
+                message = jsonify({"url" : "http://localhost:5001/articles/"+str(row[0])})
                 message.status_code = 201
                 return message
         message = jsonify({"error": "could not post article at this time"})
@@ -97,23 +97,45 @@ def collect_article(recent_articles):
         db = database.get_db()
         print(recent_articles)
         collect = list()
+        if recent_articles == 0:
+            message = jsonify({"error":"not going to attempt to retrieve zero articles"})
+            message.status_code = 404
+            return message
         for row in db.execute("SELECT id, title, content, author, posted FROM articles ORDER BY id DESC LIMIT (?);", [recent_articles,]):
             if row != None:
-                print(type(row[4]))
                 collect.append({
-                        "URL" : "https://127.0.0.1:5001/articles/"+str(row[0]),
+                        "url" : "http://127.0.0.1:5001/articles/"+str(row[0]),
                         "title" : row[1],
                         "content" : row[2],
                         "author" : row[3],
                         "posted" : row[4]
                     })
-            else:
-                message = jsonify({"error":"could not find articles"})
-                message.status_code = 404
-                return message
         message = jsonify({"success":collect})
         message.status_code = 200
         return message
+@app.route('/article/meta/<int:recent_articles>')
+def meta_articles(recent_articles):
+    if request.method == 'GET':
+            db = database.get_db()
+            print(recent_articles)
+            collect = list()
+            if recent_articles == 0:
+                message = jsonify({"error":"not going to attempt to retrieve zero articles"})
+                message.status_code = 404
+
+
+                return message
+            for row in db.execute("SELECT id, title, content, author, posted FROM articles ORDER BY id DESC LIMIT (?);", [recent_articles,]):
+                if row != None:
+                    collect.append({
+                            "url" : "<url>http://127.0.0.1:5001/articles/"+str(row[0])+"</url>",
+                            "title" : "<title>"+row[1]+"</title>",
+                            "author" : "<author>"+row[3]+"</author>",
+                            "posted" : "<pubDate>"+row[4]+"</pubDate>"
+                        })
+            message = jsonify({"success":collect})
+            message.status_code = 200
+            return message
 
 
 if __name__ == '__main__':
