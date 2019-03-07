@@ -1,0 +1,91 @@
+test_name: Test article failure cases
+
+stages:
+  - name: Create an article without auth
+    request:
+      url: http://localhost:5001/article/new
+      json:
+        title: Student's name deletes entire database
+        content: Lorem ipsum dolor sit amet
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 401
+
+  - name: Create an article with incorrect password
+    request:
+      url: http://localhost:5001/article/new
+      auth:
+        - testuser
+        - badpassword
+      json:
+        title: Student's name deletes entire database
+        content: Lorem ipsum dolor sit amet
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 401
+
+---
+
+test_name: Article lifecycle test
+
+stages:
+  - name: Create an article successfully
+    request:
+      url: http://localhost:5001/article/new
+      auth:
+        - testuser
+        - testuser
+      json:
+        title: Student's name deletes entire database
+        content: Lorem ipsum dolor sit amet
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 201
+      headers:
+        content-type: application/json
+      save:
+        body:
+          article_url: url
+          article_id: id
+      body:
+        url: !anything
+        id: !anything
+
+  - name: Retrieve newly created article
+    request:
+      url: "http://localhost:5001/article/{article_id}"
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      headers:
+        content-type: application/json
+      body:
+        title: Student's name deletes entire database
+        content: Lorem ipsum dolor sit amet
+        author: testuser
+        posted: !anything
+
+  - name: Ensure newly created article is most recent
+    request:
+      url: "http://localhost:5001/article/collect/1"
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      headers:
+        content-type: application/json
+      body:
+        success:
+          - title: Student's name deletes entire database
+            content: Lorem ipsum dolor sit amet
+            author: testuser
+            posted: !anything
