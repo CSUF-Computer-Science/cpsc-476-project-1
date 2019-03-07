@@ -13,5 +13,5 @@ class GetAuth(BasicAuth):
                 database.close_db()
             return True
         else:
-            print("bad auth")
+            print("badauth")
             return False

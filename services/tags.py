@@ -1,9 +1,12 @@
 import sqlite3, click, sys
 from flask import g, Flask, Response, jsonify, request
-from .data import db
+from data import db, auth
+
 app = Flask(__name__, instance_relative_config=True)
 app.config["DEBUG"] = True
 db.init_app(app)
+basic_auth = auth.GetAuth()
+basic_auth.init_app(app)
 
 # this function found here: http://blog.luisrei.com/articles/flaskrest.html
 @app.errorhandler(404)
@@ -20,7 +23,7 @@ def not_found(error=None):
 def conflict(error=None):
     message = {
         'status': 409,
-        'message': 'Error: Conflict at ' + request.url +' Code '+ error.message
+        'message': 'Error: Conflict at ' + request.url +' Code '+ str(error)
     }
     resp = jsonify(message)
     resp.status_code = 409
@@ -45,7 +48,7 @@ def getArticles(name):
         db.close_db()
         return not_found()
 
-@app.route('/articles/<id>/tags', methods = ['GET', 'POST', 'DELETE'])
+@app.route('/articles/<id>/tags', methods = ['GET'])
 def tags(id):
     #get all tags connected to an article
     if request.method == 'GET':
@@ -64,26 +67,33 @@ def tags(id):
         else:
             db.close_db()
             return not_found()
+    else:
+        resp = jsonify({'message': request.url + " contains no such method.",
+                    'status':405})
+        return resp
 
+@app.route('/articles/<id>/update_tags', methods = ['POST', 'DELETE'])
+@basic_auth.required
+def update_tag(id):
     #post 1 or more tags to an article
-    elif request.method == 'POST':
+    if request.method == 'POST':
         mydb = db.get_db()
         content = request.get_json()
         tagnames = content.get('TagNames'), None
+        print(tagnames)
         if tagnames == None:
             resp = jsonify({"error": "Error: Missing Arguments. Please specify TagName(s) to add."})
             resp.status_code = 400
             return resp
         else:
-            for t in tagnames:
+            for t in tagnames[0]:
+                print(t)
                 try:
-                    mydb.execute(
-                        'INSERT INTO tags(name, article)''VALUES (?,?)', [id, t])
-                    
+                    mydb.execute('INSERT INTO tags(name, article) VALUES (?,?)', [t, id])
+                    mydb.commit()
                 except:
                     e=sys.exc_info()[0]
                     return conflict(e)
-            mydb.commit()
             try:
                 tags = mydb.execute(
                     "SELECT name FROM tags WHERE article=?", [id]).fetchall()
@@ -101,7 +111,6 @@ def tags(id):
             resp.status_code = 401
             resp.headers['Location']=location
             return resp
-
     #delete 1 or more tags from an article
     elif request.method == 'DELETE':
         mydb = db.get_db()
@@ -112,21 +121,20 @@ def tags(id):
             resp.status_code = 400
             return resp
         else:
-            for t in tagnames:
+            for t in tagnames[0]:
+                print(t)
                 try:
                     mydb.execute('DELETE FROM tags WHERE name=? AND article=?', [t, id])
-
                 except:
                     e=sys.exc_info()[0]
                     return conflict(e)
-            mydb.commit()
+                mydb.commit()
             try:
                 tags = mydb.execute(
-                    "SELECT name FROM tags WHERE article=?", [id]).fetchall()s
+                    "SELECT name FROM tags WHERE article=?", [id]).fetchall()
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
-
             db.close_db()
             article_id = "/articles/"+id
             results = {'article_id': article_id,
@@ -137,9 +145,7 @@ def tags(id):
             resp.status_code = 200
             return resp
     else:
-        message: {'message': request.url + " contains no such method.",
-                  'status': 405}
-        resp = jsonify(message)
-        resp.status_code = 405
+        resp = jsonify({'message': request.url + " contains no such method.",
+                    'status':405})
         return resp
 
