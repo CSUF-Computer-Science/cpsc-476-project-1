@@ -1,6 +1,7 @@
 import sys, sqlite3, bcrypt, base64, hashlib, bcrypt
 from flask import Flask, request, g, jsonify, Response
 from data import db as database, auth
+
 app = Flask(__name__)
 database.init_app(app)
 basic_auth = auth.GetAuth()
