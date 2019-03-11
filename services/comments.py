@@ -29,7 +29,7 @@ def conflict(error=None):
     resp.status_code = 409
     return resp
 
-@app.route('/articles/<id>/comments', methods = ['GET', 'POST'])
+@app.route('/article/<id>/comments', methods = ['GET', 'POST'])
 def comments(id):
     #get number of comments connected to an article
     if request.method == 'GET':
@@ -41,7 +41,9 @@ def comments(id):
             e=sys.exc_info()[0]
             return conflict(e)
         if results[0][0]>0:
-            resp = jsonify(results)
+            resp = jsonify({
+                "count": results[0][0]
+            })
             resp.status_code = 200
             db.close_db()
             return resp
@@ -53,9 +55,9 @@ def comments(id):
     elif request.method == 'POST':
         mydb = db.get_db()
         content = request.get_json()
-        user= content.get('username', None)
+        user= auth.getUser() or "Anonymous"
         body= content.get('text', None)
-        if user == None or body==None:
+        if body==None:
             resp = jsonify({"error": "Error: Missing Arguments. Please specify Username and Comment Text"})
             resp.status_code = 400
             return resp
@@ -69,7 +71,7 @@ def comments(id):
             mydb.commit()
             try:
                 comments = mydb.execute(
-                    "SELECT * FROM comments WHERE article=? ORDER BY posted ASC", [id]).fetchall()
+                    "SELECT id,author,content,posted FROM comments WHERE article=? ORDER BY posted DESC", [id]).fetchall()
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
@@ -79,7 +81,12 @@ def comments(id):
             results = {'article_id': article_id,
                        'comments': []}
             for c in comments:
-                results['comments'].append(c)
+                results['comments'].append({
+                    "id": c[0],
+                    "author": c[1],
+                    "content": c[2],
+                    "posted": c[3],
+                })
             resp = jsonify(results)
             resp.status_code = 401
             resp.headers['Location']=location
@@ -90,7 +97,7 @@ def comments(id):
         return resp
 
 #delete comment from an article
-@app.route('/articles/<id>/delete_comments', methods = ['DELETE'])
+@app.route('/article/<id>/delete_comments', methods = ['DELETE'])
 @basic_auth.required
 def delete_comment(id):
     if request.method == 'DELETE':
@@ -110,7 +117,7 @@ def delete_comment(id):
             mydb.commit()
             try: 
                 comments = mydb.execute(
-                    "SELECT * FROM comments WHERE article=? ORDER BY posted ASC", [id]).fetchall()
+                    "SELECT * FROM comments WHERE article=? ORDER BY posted DESC", [id]).fetchall()
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
@@ -119,7 +126,9 @@ def delete_comment(id):
             results = {'article_id': article_id,
                        'comments': []}
             for c in comments:
-                results['comments'].append(c)
+                results['comments'].append({
+
+                })
             resp = jsonify(results)
             resp.status_code = 200
             return resp
@@ -129,18 +138,30 @@ def delete_comment(id):
         return resp
 
 #get n most recent article comments.
-@app.route('/articles/<id>/comments/<number>', methods=['GET'])
+@app.route('/article/<id>/comments/<number>', methods=['GET'])
 def getComments(id, number):
     mydb = db.get_db()
     try:
         results = mydb.execute(
-            "SELECT * FROM (SELECT * FROM comments WHERE article=? ORDER BY posted ASC) LIMIT ?", [number, id]).fetchall()
+            "SELECT * FROM (SELECT id,author,content,article,posted FROM comments WHERE article=? ORDER BY posted DESC) LIMIT ?", [id, number]).fetchall()
     except:
         e=sys.exc_info()[0]
         return conflict(e)
 
-    if results:
-        resp = jsonify(results)
+    if len(results) > 0:
+        out = {
+            "count": len(results),
+            "comments": []
+        }
+        for row in results:
+            out['comments'].append({
+                "id": row[0],
+                "author": row[1],
+                "content": row[2],
+                "article": row[3],
+                "posted": row[4],
+            })
+        resp = jsonify(out)
         resp.status_code = 200
         db.close_db()
         return resp

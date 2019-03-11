@@ -13,6 +13,7 @@ def get_db():
     db = getattr(g, '_database', None)
     if db not in g:
         db = g.database = sqlite3.connect(DATABASE)
+        db.execute("PRAGMA foreign_keys = on")
     return db
 
 def close_db(e=None):

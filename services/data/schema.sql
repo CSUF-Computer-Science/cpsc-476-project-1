@@ -3,7 +3,7 @@
 --
 -- Text encoding used: UTF-8
 --
-PRAGMA foreign_keys = off;
+PRAGMA foreign_keys = on;
 DROP TABLE IF EXISTS articles;
 DROP TABLE IF EXISTS comments;
 DROP TABLE IF EXISTS tags;
@@ -16,7 +16,7 @@ CREATE TABLE articles (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT (128), c
 CREATE TABLE comments (id INTEGER PRIMARY KEY AUTOINCREMENT, author INT REFERENCES users (username), content TEXT, article INT REFERENCES articles (id), posted datetime default CURRENT_TIMESTAMP);
 
 -- Table: tags
-CREATE TABLE tags (name STRING (16), article INT REFERENCES articles, UNIQUE (name, article) ON CONFLICT FAIL);
+CREATE TABLE tags (name STRING (16), article INT REFERENCES articles(id), UNIQUE (name, article) ON CONFLICT FAIL);
 
 -- Table: users
 CREATE TABLE users (username STRING (32) PRIMARY KEY ON CONFLICT FAIL, password TEXT, full_name STRING (64));

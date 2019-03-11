@@ -35,12 +35,16 @@ def getArticles(name):
     mydb = db.get_db()
     try:
         results = mydb.execute(
-            "SELECT * FROM tags WHERE name=?", [name]).fetchall()
+            "SELECT article FROM tags WHERE name=?", [name]).fetchall()
     except:
             e=sys.exc_info()[0]
             return conflict(e)        
     if results:
-        resp = jsonify(results)
+        resultsOut = {'count': len(results),
+                      'articles': []}
+        for t in results:
+            resultsOut['articles'].append(f"/article/{t[0]}")
+        resp = jsonify(resultsOut)
         resp.status_code = 200
         db.close_db()
         return resp
@@ -48,19 +52,23 @@ def getArticles(name):
         db.close_db()
         return not_found()
 
-@app.route('/articles/<id>/tags', methods = ['GET'])
+@app.route('/article/<id>/tags', methods = ['GET'])
 def tags(id):
     #get all tags connected to an article
     if request.method == 'GET':
         mydb = db.get_db()
         try:
             results = mydb.execute(
-                "SELECT * FROM tags WHERE article=?", [id]).fetchall()
+                "SELECT name FROM tags WHERE article=?", [id]).fetchall()
         except:
             e=sys.exc_info()[0]
             return conflict(e)
         if results:
-            resp = jsonify(results)
+            resultsOut = {'article_id': f"/article/{id}",
+                          'tags': []}
+            for t in results:
+                resultsOut['tags'].append(t[0])
+            resp = jsonify(resultsOut)
             resp.status_code = 200
             db.close_db()
             return resp
@@ -72,7 +80,7 @@ def tags(id):
                     'status':405})
         return resp
 
-@app.route('/articles/<id>/update_tags', methods = ['POST', 'DELETE'])
+@app.route('/article/<id>/update_tags', methods = ['POST', 'DELETE'])
 @basic_auth.required
 def update_tag(id):
     #post 1 or more tags to an article
@@ -101,14 +109,14 @@ def update_tag(id):
                 e=sys.exc_info()[0]
                 return conflict(e)    
             db.close_db()
-            article_id = "/articles/"+id
+            article_id = "/article/"+id
             location = article_id + "/tags/"
             results = {'article_id': article_id,
                        'tags': []}
             for t in tags:
-                results['tags'].append(t)
+                results['tags'].append(t[0])
             resp = jsonify(results)
-            resp.status_code = 401
+            resp.status_code = 200
             resp.headers['Location']=location
             return resp
     #delete 1 or more tags from an article
@@ -136,11 +144,11 @@ def update_tag(id):
                 e=sys.exc_info()[0]
                 return conflict(e)
             db.close_db()
-            article_id = "/articles/"+id
+            article_id = "/article/"+id
             results = {'article_id': article_id,
                        'tags': []}
             for t in tags:
-                results['tags'].append(t)
+                results['tags'].append(t[0])
             resp = jsonify(results)
             resp.status_code = 200
             return resp

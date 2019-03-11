@@ -3,31 +3,37 @@ test_name: Add an article with a new tag
 stages:
   - name: Create an article
     request:
-      url: http://localhost:5001/articles/create
+      url: http://localhost:5001/article/new
       auth:
         - testuser
-        - testpassword
+        - testuser
       json:
         title: Student's name deletes entire database
         content: Lorem ipsum dolor sit amet
       method: POST
       headers:
-        content-type: application/json
+        Content-Type: application/json
     response:
-      status_code: 200
+      status_code: 201
       headers:
-        content-type: application/json
+        Content-Type: application/json
+      save:
+        body:
+          article_url: url
+          article_id: id
       body:
-        article_id: /articles/1
+        url: !anything
+        id: !anything
 
   - name: Add a tag to that article
     request:
-      url: http://localhost:5002/tags/databases
+      url: "http://localhost:5002/article/{article_id}/update_tags"
       auth:
         - testuser
-        - testpassword
+        - testuser
       json:
-        article_id: /articles/1
+        TagNames:
+          - databases
       method: POST
       headers:
         content-type: application/json
@@ -36,7 +42,7 @@ stages:
       headers:
         content-type: application/json
       body:
-        article_id: /articles/1
+        article_id: "/article/{article_id}"
         tags:
           - databases
 
@@ -53,16 +59,17 @@ stages:
       body:
         count: 1
         articles:
-          - /articles/1
+          - "/article/{article_id}"
 
-  - name: Add another tag to the article
+  - name: Add a tag to that article
     request:
-      url: http://localhost:5002/tags/sql
+      url: "http://localhost:5002/article/{article_id}/update_tags"
       auth:
         - testuser
-        - testpassword
+        - testuser
       json:
-        article_id: /articles/1
+        TagNames:
+          - sql
       method: POST
       headers:
         content-type: application/json
@@ -71,19 +78,20 @@ stages:
       headers:
         content-type: application/json
       body:
-        article_id: /articles/1
+        article_id: "/article/{article_id}"
         tags:
           - databases
           - sql
 
   - name: Delete a tag from an article
     request:
-      url: http://localhost:5002/tags/sql
+      url: "http://localhost:5002/article/{article_id}/update_tags"
       auth:
         - testuser
-        - testpassword
+        - testuser
       json:
-        article_id: /articles/1
+        TagNames:
+          - sql
       method: DELETE
       headers:
         content-type: application/json
@@ -92,24 +100,25 @@ stages:
       headers:
         content-type: application/json
       body:
-        article_id: /articles/1
+        article_id: "/article/{article_id}"
         tags:
           - databases
 
   - name: Add tag to a nonexistent article
     request:
-      url: http://localhost:5002/tags/sql
+      url: "http://localhost:5002/article/9001/update_tags"
       auth:
         - testuser
-        - testpassword
+        - testuser
       json:
-        article_id: /articles/9001
+        TagNames:
+          - wrong
       method: POST
       headers:
         content-type: application/json
     response:
-      status_code: 404
+      status_code: 409
       headers:
         content-type: application/json
       body:
-        error: article does not exist
+        message: !anything

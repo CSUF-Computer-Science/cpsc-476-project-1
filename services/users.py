@@ -32,7 +32,7 @@ def conflict(error=None):
 def register_user():
      if request.method == 'POST':
           username = request.get_json()['username']
-          hashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(request.get_json()['password'].encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe')
+          hashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(request.get_json()['password'].encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe').decode('utf-8')
           full_name = request.get_json()['full_name']
           db = database.get_db()       
           for row in db.execute('SELECT username FROM users WHERE username=(?);', [username,]):
@@ -55,12 +55,10 @@ def delete_user():
           #decoding user authorization
           user = request.headers['Authorization'].strip().split(' ')
           username, password = base64.b64decode(user[1]).decode().split(':', 1)
-          hashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(password.encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe')
-          print(username, hashed)
           db = database.get_db()
           for row in db.execute('SELECT username FROM users WHERE username=(?);', [username,]):
                if row != None:
-                    db.execute('DELETE FROM users WHERE username=(?) AND password=(?);', [username, hashed])
+                    db.execute('DELETE FROM users WHERE username=(?);', [username])
                     db.commit()
                     database.close_db()
                     print('deleted')
@@ -79,8 +77,8 @@ def change_password():
      if request.method == 'POST':
           user = request.headers['Authorization'].strip().split(' ')
           username, password = base64.b64decode(user[1]).decode().split(':', 1)
-          hashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(password.encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe')
-          newhashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(request.get_json()['password'].encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe')
+          hashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(password.encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe').decode('utf-8')
+          newhashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(request.get_json()['password'].encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe').decode('utf-8')
           db = database.get_db()
           for row in db.execute("SELECT username FROM users WHERE username=(?) AND password=(?);", [username, hashed]):
                if row != None:
