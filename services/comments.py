@@ -5,8 +5,12 @@ from .data import db, auth
 app = Flask(__name__, instance_relative_config=True)
 app.config["DEBUG"] = True
 db.init_app(app)
+
 basic_auth = auth.GetAuth()
 basic_auth.init_app(app)
+
+allow_anon_auth = auth.AllowAnonymousAuth()
+allow_anon_auth.init_app(app)
 
 # this function found here: http://blog.luisrei.com/articles/flaskrest.html
 @app.errorhandler(404)
@@ -30,6 +34,7 @@ def conflict(error=None):
     return resp
 
 @app.route('/article/<id>/comments', methods = ['GET', 'POST'])
+@allow_anon_auth.required
 def comments(id):
     #get number of comments connected to an article
     if request.method == 'GET':
@@ -55,7 +60,7 @@ def comments(id):
     elif request.method == 'POST':
         mydb = db.get_db()
         content = request.get_json()
-        user= auth.getUser() or "Anonymous"
+        user= auth.getUser()
         body= content.get('text', None)
         if body==None:
             resp = jsonify({"error": "Error: Missing Arguments. Please specify Username and Comment Text"})
@@ -64,7 +69,7 @@ def comments(id):
         else:
             try:
                 mydb.execute(
-                    'INSERT INTO comments(author, content, article)''VALUES (?,?,?)', [user, body, id])
+                    'INSERT INTO comments(author, content, article) VALUES (?,?,?)', [user, body, id])
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
