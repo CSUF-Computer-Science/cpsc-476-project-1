@@ -18,7 +18,7 @@ From the project directory, run the following commands:
 
 ##### a) On *nix environment:
 
-Using [Tuffix](https://github.com/kevinwortman/tuffix)? You'll also need this: `apt-get install python3-venv`
+Using [Tuffix](https://github.com/kevinwortman/tuffix)? You'll also need this: `sudo apt-get install python3-venv`
 
 `python3 -m venv venv`
 
