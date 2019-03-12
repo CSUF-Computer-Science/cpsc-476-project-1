@@ -27,7 +27,7 @@ def not_found(error=None):
 def conflict(error=None):
     message = {
         'status': 409,
-        'message': 'Error: Conflict at ' + request.url +' Code '+ error.message
+        'message': 'Error: Conflict at ' + request.url +' Code '+ str(error)
     }
     resp = jsonify(message)
     resp.status_code = 409
@@ -81,7 +81,7 @@ def comments(id):
                 e=sys.exc_info()[0]
                 return conflict(e)
             db.close_db()
-            article_id = "/articles/"+ id
+            article_id = "/article/"+ id
             location = article_id + "/comments/"
             results = {'article_id': article_id,
                        'comments': []}
@@ -93,7 +93,7 @@ def comments(id):
                     "posted": c[3],
                 })
             resp = jsonify(results)
-            resp.status_code = 401
+            resp.status_code = 200
             resp.headers['Location']=location
             return resp
     else:
@@ -127,7 +127,7 @@ def delete_comment(id):
                 e=sys.exc_info()[0]
                 return conflict(e)
             db.close_db()
-            article_id = "/articles/"+id
+            article_id = "/article/"+id
             results = {'article_id': article_id,
                        'comments': []}
             for c in comments:
