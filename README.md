@@ -58,6 +58,15 @@ Each microservice can be started individually by using the following commands:
 
 `foreman run comments`
 
+### Networking
+
+| Service  | Port  |
+|----------|-------|
+| Users    | :5000 |
+| Articles | :5001 |
+| Tags     | :5002 |
+| Comments | :5003 |
+
 ### To Test
 
 #### 1) Initialize the database with test data
