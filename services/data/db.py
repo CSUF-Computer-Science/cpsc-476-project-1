@@ -7,6 +7,9 @@ DATABASE = 'newkids.db'
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_data_cmd)
+    app.cli.add_command(init_db_cmd)
+    app.cli.add_command(reset_db_cmd)
+
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -31,6 +34,8 @@ def init_db():
 def reset_db():
     if os.path.isfile("newkids.db"):
         os.remove("newkids.db")
+    init_db()
+
     
 def init_data():
     if not os.path.isfile("newkids.db"):

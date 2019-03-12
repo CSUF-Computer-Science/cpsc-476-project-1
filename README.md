@@ -62,7 +62,7 @@ Each microservice can be started individually by using the following commands:
 
 #### 1) Initialize the database with test data
 
-`foreman run init-db`
+`foreman run init-data`
 
 #### 2) Run the tests
 
