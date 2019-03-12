@@ -1,35 +1,29 @@
-test_name: Attempt to add comment to nonexistent article.
+test_name: Test comments lifecycle
 
 stages:
-  - name: Make sure a comment cant be made an orphan
+  - name: Make sure a comment cant be made an orphan (doesn't have a valid parent article)
     request:
-      url: http://localhost:5003/comments/
+      url: http://localhost:5003/article/500/comments
       auth:
         - testuser
-        - testpassword
+        - testuser
       json:
-        article_id: /articles/500
-        content: this is a test comment
+        text: this is a test comment
       method: POST
       headers:
         content-type: application/json
     response:
-      status_code: 404
+      status_code: 409
       headers:
         content-type: application/json
       body:
-        error: article does not exist
-
----
-
-test_name: Anonymous comments
-stages:
+        status: 409
+        message: "Error: Conflict at http://localhost:5003/article/500/comments Code <class 'sqlite3.IntegrityError'>"
   - name: Post an anonymous comment
     request:
-      url: http://localhost:5003/comments/
+      url: http://localhost:5003/article/1/comments
       json:
-        article_id: /articles/1
-        content: this is a test comment
+        text: this is a test comment
       method: POST
       headers:
         content-type: application/json
@@ -38,23 +32,24 @@ stages:
       headers:
         content-type: application/json
       body:
-        author: Anonymous
-        content: this is a test comment
-
----
-
-test_name: Authenticated comments
-
-stages:
+        article_id: /article/1
+        comments:
+          - id: 2
+            author: Anonymous Coward
+            content: this is a test comment
+            posted: !anything
+          - id: 1
+            author: testuser
+            content: that's super cool
+            posted: !anything
   - name: Make sure an authenticated comment can be posted
     request:
-      url: http://localhost:5003/comments/
+      url: http://localhost:5003/article/1/comments
       auth:
         - testuser
-        - testpassword
+        - testuser
       json:
-        article_id: /articles/1
-        content: this is a test authed comment
+        text: this is a test authed comment
       method: POST
       headers:
         content-type: application/json
@@ -63,16 +58,23 @@ stages:
       headers:
         content-type: application/json
       body:
-        author: testuser
-        content: this is a test authed comment
-
----
-
-test_name: Retrieve comments
-stages:
+        article_id: /article/1
+        comments:
+          - id: 3
+            author: testuser
+            content: this is a test authed comment
+            posted: !anything
+          - id: 2
+            author: Anonymous Coward
+            content: this is a test comment
+            posted: !anything
+          - id: 1
+            author: testuser
+            content: that's super cool
+            posted: !anything
   - name: Make sure comments are retrieved in order
     request:
-      url: http://localhost:5003/comments/1
+      url: http://localhost:5003/article/1/comments/3
       method: GET
       headers:
         content-type: application/json
@@ -81,10 +83,11 @@ stages:
       headers:
         content-type: application/json
       body:
-        article_id: '/articles/1'
+        count: 3
         comments:
-          - author: Anonymous
-            content: this is a test comment
           - author: testuser
             content: this is a test authed comment
-            
+          - author: Anonymous Coward
+            content: this is a test comment
+          - author: testuser
+            content: that's super cool

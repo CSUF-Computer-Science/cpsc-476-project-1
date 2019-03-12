@@ -6,13 +6,13 @@ DATABASE = 'newkids.db'
 
 def init_app(app):
     app.teardown_appcontext(close_db)
-    app.cli.add_command(init_db_cmd)
+    app.cli.add_command(init_data_cmd)
 
 def get_db():
     db = getattr(g, '_database', None)
     if db not in g:
         db = g.database = sqlite3.connect(DATABASE)
-        db.execute("PRAGMA foreign_keys = on")
+        """ db.execute("PRAGMA foreign_keys = on") """
     return db
 
 def close_db(e=None):
