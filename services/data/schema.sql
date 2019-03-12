@@ -20,3 +20,7 @@ CREATE TABLE tags (name STRING (16), article INT REFERENCES articles(id), UNIQUE
 
 -- Table: users
 CREATE TABLE users (username STRING (32) PRIMARY KEY ON CONFLICT FAIL, password TEXT, full_name STRING (64));
+
+-- Create entry for anonymous users, required for foreign keys
+INSERT INTO users (username, password, full_name) VALUES ("Anonymous Coward", "invalidhash", "Anonymous Coward");
+                                                                                                        
