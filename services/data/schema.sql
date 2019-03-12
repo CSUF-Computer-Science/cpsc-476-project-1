@@ -10,10 +10,10 @@ DROP TABLE IF EXISTS tags;
 DROP TABLE IF EXISTS users;
 
 -- Table: articles
-CREATE TABLE articles (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT (128), content TEXT (512), author INT REFERENCES users (username), posted datetime default CURRENT_TIMESTAMP);
+CREATE TABLE articles (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT (128), content TEXT (512), author INT REFERENCES users (username), posted datetime DEFAULT(STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')));
 
 -- Table: comments
-CREATE TABLE comments (id INTEGER PRIMARY KEY AUTOINCREMENT, author STRING (32) REFERENCES users (username), content TEXT, article INT REFERENCES articles (id), posted datetime default CURRENT_TIMESTAMP);
+CREATE TABLE comments (id INTEGER PRIMARY KEY AUTOINCREMENT, author STRING (32) REFERENCES users (username), content TEXT, article INT REFERENCES articles (id), posted datetime DEFAULT(STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')));
 
 -- Table: tags
 CREATE TABLE tags (name STRING (16), article INT REFERENCES articles(id), UNIQUE (name, article) ON CONFLICT FAIL);
