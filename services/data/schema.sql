@@ -20,12 +20,3 @@ CREATE TABLE tags (name STRING (16), article INT REFERENCES articles(id), UNIQUE
 
 -- Table: users
 CREATE TABLE users (username STRING (32) PRIMARY KEY ON CONFLICT FAIL, password TEXT, full_name STRING (64));
-
--- Add some default data
-INSERT INTO users (username, password, full_name) VALUES ("testuser", "$2b$12$DbmIZ/a5LByoJHgFItyZCeyg/DVecJAzVzmtVfFGKioGo8AqWE1XC", "Test User");
-INSERT INTO articles (title, content, author) VALUES ("My Fake Twitter BIO", "I'm a cat fan", "testuser");
-INSERT INTO comments (author, article, content) VALUES ("testuser", 1, "that's super cool");
-INSERT INTO tags (article, name) VALUES (1, "blessed");
-INSERT INTO tags (article, name) VALUES (1, "stayblessed");
-
-PRAGMA foreign_keys = on;
