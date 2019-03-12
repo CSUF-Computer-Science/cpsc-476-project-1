@@ -10,29 +10,39 @@
 
 ### The Setup
 
+#### 1) Virtual Environment Setup
+
 Python 3 is packaged with a virtual environment. Should be good so that we all have the same dependencies.
 
-On *nix environment:
+From the project directory, run the following commands:
+
+##### a) On *nix environment:
+
+Using [Tuffix](https://github.com/kevinwortman/tuffix)? You'll also need this: `apt-get install python3-venv`
 
 `python3 -m venv venv`
 
-On Windows:
+##### b) On Windows:
 
 `py -3 -m venv venv`
 
-Then install dependencies with:
-
-`pip3 install -r requirements.txt`
-
-To update dendency file:
-
-`pip3 freeze > requirements.txt`
-
-To start the virtual environment:
+#### 2) Start the virtual environment:
 
 `. venv/bin/activate`
 
-Finally, the database must be initialized. From the top-level directory run the following command:
+#### 3) Then install dependencies with:
+
+`pip3 install -r requirements.txt`
+
+##### As a developer, to update dendency file:
+
+`pip3 freeze > requirements.txt`
+
+#### 4) Additionally, you'll have to install foreman:
+
+`sudo apt install ruby-foreman`
+
+#### 5) Finally, the database must be initialized. From the top-level directory run the following command:
 
 `foreman run init-db`
 
@@ -50,4 +60,12 @@ Each microservice can be started individually by using the following commands:
 
 ### To Test
 
-From the top-level directory, and with a fresh database created with `foreman run init-db`, tests can be ran with the following command: `py.test`.
+#### 1) Initialize the database with test data
+
+`foreman run init-db`
+
+#### 2) Run the tests
+
+`py.test`
+
+This will execute all tests in the `tests` directory in alphabetical order and has been tested to work with the default testing database.
