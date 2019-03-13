@@ -67,6 +67,10 @@ Each microservice can be started individually by using the following commands:
 | Tags     | :5002 |
 | Comments | :5003 |
 
+### API Documentation
+
+API documentation is avaialble on our [Postman page](https://documenter.getpostman.com/view/262836/S11PpFTY)
+
 ### To Test
 
 #### 1) Initialize the database with test data
