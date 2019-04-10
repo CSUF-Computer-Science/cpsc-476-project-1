@@ -18,7 +18,7 @@ def get_db(service):
 
 
 def close_db(service, e=None):
-    db = g.pop(f"_database{service}", None)
+    db = getattr(g, f"_database{service}", None)
     if db is not None:
         db.close()
 

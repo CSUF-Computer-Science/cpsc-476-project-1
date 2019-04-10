@@ -2,7 +2,7 @@ import sys, os
 from flask import Flask, jsonify, request
 from .data import db, auth
 
-SERVICE_NAME = os.path.basename(__file__)
+SERVICE_NAME = os.path.splitext(os.path.basename(__file__))[0]
 
 app = Flask(__name__, instance_relative_config=True)
 app.config["DEBUG"] = True

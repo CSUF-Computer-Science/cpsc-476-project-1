@@ -3,7 +3,9 @@ from flask import Flask, request, jsonify
 from .data import db as database, auth
 app = Flask(__name__)
 
-SERVICE_NAME = os.path.basename(__file__)
+SERVICE_NAME = os.path.splitext(os.path.basename(__file__))[0]
+
+print(SERVICE_NAME)
 
 database.init_app(app)
 basic_auth = auth.GetAuth()

@@ -2,7 +2,7 @@ import base64, hashlib, bcrypt, os
 from flask import Flask, request, jsonify
 from .data import db as database, auth
 
-SERVICE_NAME = os.path.basename(__file__)
+SERVICE_NAME = os.path.splitext(os.path.basename(__file__))[0]
 
 app = Flask(__name__)
 database.init_app(app)
