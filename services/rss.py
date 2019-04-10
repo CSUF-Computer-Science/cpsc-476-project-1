@@ -30,3 +30,16 @@ def latest_articles():
                 items = article_collection
             )
         return feed.rss()
+@app.route("/rss/feed", methods=['GET'])
+def feed_articles():
+    if flask_request.method == 'GET':
+        print("A full feed containing the full text for each article, its tags as RSS categories, and a comment count.")
+
+    return {'default':'the fault'}
+
+@app.route("/rss/<int:article_id>/comments", methods=['GET'])
+def feed_articles():
+    if flask_request.method == 'GET':
+        print("A comment feed for each article.")
+
+    return {'default':'the fault'}
