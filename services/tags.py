@@ -1,6 +1,8 @@
-import sqlite3, click, sys
-from flask import g, Flask, Response, jsonify, request
+import sys, os
+from flask import Flask, jsonify, request
 from .data import db, auth
+
+SERVICE_NAME = os.path.splitext(os.path.basename(__file__))[0]
 
 app = Flask(__name__, instance_relative_config=True)
 app.config["DEBUG"] = True
@@ -32,7 +34,7 @@ def conflict(error=None):
 #get all articles connected to a tag
 @app.route('/tags/<name>', methods=['GET'])
 def getArticles(name):
-    mydb = db.get_db()
+    mydb = db.get_db(SERVICE_NAME)
     try:
         results = mydb.execute(
             "SELECT article FROM tags WHERE name=?", [name]).fetchall()
@@ -46,17 +48,17 @@ def getArticles(name):
             resultsOut['articles'].append(f"/article/{t[0]}")
         resp = jsonify(resultsOut)
         resp.status_code = 200
-        db.close_db()
+        db.close_db(SERVICE_NAME)
         return resp
     else:
-        db.close_db()
+        db.close_db(SERVICE_NAME)
         return not_found()
 
 @app.route('/article/<id>/tags', methods = ['GET'])
 def tags(id):
     #get all tags connected to an article
     if request.method == 'GET':
-        mydb = db.get_db()
+        mydb = db.get_db(SERVICE_NAME)
         try:
             results = mydb.execute(
                 "SELECT name FROM tags WHERE article=?", [id]).fetchall()
@@ -70,10 +72,10 @@ def tags(id):
                 resultsOut['tags'].append(t[0])
             resp = jsonify(resultsOut)
             resp.status_code = 200
-            db.close_db()
+            db.close_db(SERVICE_NAME)
             return resp
         else:
-            db.close_db()
+            db.close_db(SERVICE_NAME)
             return not_found()
     else:
         resp = jsonify({'message': request.url + " contains no such method.",
@@ -85,7 +87,7 @@ def tags(id):
 def update_tag(id):
     #post 1 or more tags to an article
     if request.method == 'POST':
-        mydb = db.get_db()
+        mydb = db.get_db(SERVICE_NAME)
         content = request.get_json()
         tagnames = content.get('TagNames'), None
         print(tagnames)
@@ -108,7 +110,7 @@ def update_tag(id):
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)    
-            db.close_db()
+            db.close_db(SERVICE_NAME)
             article_id = "/article/"+id
             location = article_id + "/tags/"
             results = {'article_id': article_id,
@@ -121,7 +123,7 @@ def update_tag(id):
             return resp
     #delete 1 or more tags from an article
     elif request.method == 'DELETE':
-        mydb = db.get_db()
+        mydb = db.get_db(SERVICE_NAME)
         content = request.get_json()
         tagnames = content.get('TagNames'), None
         if tagnames == None:
@@ -143,7 +145,7 @@ def update_tag(id):
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
-            db.close_db()
+            db.close_db(SERVICE_NAME)
             article_id = "/article/"+id
             results = {'article_id': article_id,
                        'tags': []}

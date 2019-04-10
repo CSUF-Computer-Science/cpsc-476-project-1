@@ -1,6 +1,8 @@
-import sqlite3, click, sys
-from flask import g, Flask, Response, jsonify, request
+import sys, os
+from flask import Flask, jsonify, request
 from .data import db, auth
+
+SERVICE_NAME = os.path.splitext(os.path.basename(__file__))[0]
 
 app = Flask(__name__, instance_relative_config=True)
 app.config["DEBUG"] = True
@@ -38,7 +40,7 @@ def conflict(error=None):
 def comments(id):
     #get number of comments connected to an article
     if request.method == 'GET':
-        mydb = db.get_db()
+        mydb = db.get_db(SERVICE_NAME)
         try: 
             results = mydb.execute(
                 "SELECT COUNT(*) FROM comments WHERE article=?", [id]).fetchall()
@@ -50,15 +52,15 @@ def comments(id):
                 "count": results[0][0]
             })
             resp.status_code = 200
-            db.close_db()
+            db.close_db(SERVICE_NAME)
             return resp
         else:
-            db.close_db()
+            db.close_db(SERVICE_NAME)
             return not_found()
             
     #post a new comment on an article
     elif request.method == 'POST':
-        mydb = db.get_db()
+        mydb = db.get_db(SERVICE_NAME)
         content = request.get_json()
         user= auth.getUser()
         body= content.get('text', None)
@@ -80,7 +82,7 @@ def comments(id):
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
-            db.close_db()
+            db.close_db(SERVICE_NAME)
             article_id = "/article/"+ id
             location = article_id + "/comments/"
             results = {'article_id': article_id,
@@ -106,7 +108,7 @@ def comments(id):
 @basic_auth.required
 def delete_comment(id):
     if request.method == 'DELETE':
-        mydb = db.get_db()
+        mydb = db.get_db(SERVICE_NAME)
         content = request.get_json()
         comment_id = content.get('CommentId', None)
         if comment_id == None:
@@ -126,7 +128,7 @@ def delete_comment(id):
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
-            db.close_db()
+            db.close_db(SERVICE_NAME)
             article_id = "/article/"+id
             results = {'article_id': article_id,
                        'comments': []}
@@ -145,7 +147,7 @@ def delete_comment(id):
 #get n most recent article comments.
 @app.route('/article/<id>/comments/<number>', methods=['GET'])
 def getComments(id, number):
-    mydb = db.get_db()
+    mydb = db.get_db(SERVICE_NAME)
     try:
         results = mydb.execute(
             "SELECT * FROM (SELECT id,author,content,article,posted FROM comments WHERE article=? ORDER BY posted DESC) LIMIT ?", [id, number]).fetchall()
@@ -168,9 +170,9 @@ def getComments(id, number):
             })
         resp = jsonify(out)
         resp.status_code = 200
-        db.close_db()
+        db.close_db(SERVICE_NAME)
         return resp
     else:
-        db.close_db()
+        db.close_db(SERVICE_NAME)
         return not_found()
 
