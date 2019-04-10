@@ -11,14 +11,14 @@ def init_app(app):
 
 
 def get_db(service):
-    db = getattr(g, '_database', None)
+    db = getattr(g, f"_database{service}", None)
     if db not in g:
         db = g.database = sqlite3.connect(f"{service}.db")
     return db
 
 
 def close_db(service, e=None):
-    db = g.pop('db', None)
+    db = g.pop(f"_database{service}", None)
     if db is not None:
         db.close()
 

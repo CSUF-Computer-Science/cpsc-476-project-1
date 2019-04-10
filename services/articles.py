@@ -1,7 +1,9 @@
-import sys, base64, sqlite3
-from flask import Flask, request, g, jsonify, Response
+import base64, os
+from flask import Flask, request, jsonify
 from .data import db as database, auth
 app = Flask(__name__)
+
+SERVICE_NAME = os.path.basename(__file__)
 
 database.init_app(app)
 basic_auth = auth.GetAuth()
@@ -36,13 +38,13 @@ def new_article():
         #decoding user authorization
         user = request.headers['Authorization'].strip().split(' ')
         username = base64.b64decode(user[1]).decode().split(':', 1)[0]
-        db = database.get_db()   
+        db = database.get_db(SERVICE_NAME)
         db.execute("INSERT INTO articles(title, content, author) VALUES(?,?,?);", [request.get_json()['title'], request.get_json()['content'], username])
         db.commit()
         for row in db.execute("SELECT id FROM articles WHERE title=(?) AND author=(?) ORDER BY id DESC;", [request.get_json()['title'], username]):
             if row != None:
                 db.commit()
-                database.close_db()
+                database.close_db(SERVICE_NAME)
                 message = jsonify({
                     "url" : "/articles/"+str(row[0]),
                     "id": row[0]
@@ -56,11 +58,11 @@ def new_article():
 @app.route('/article/<int:article_id>', methods=['GET'])#return 200 else 404
 def find_article(article_id):
     if request.method == 'GET':
-        db = database.get_db()
+        db = database.get_db(SERVICE_NAME)
         for row in db.execute("SELECT title, content, author, posted FROM articles where id=(?)", [article_id,]):
             if row != None:
                 db.commit()
-                database.close_db()
+                database.close_db(SERVICE_NAME)
                 message = jsonify({
                     "title" : row[0],
                     "content" : row[1],
@@ -69,7 +71,7 @@ def find_article(article_id):
                 })
                 message.status_code = 200
                 return message
-        database.close_db()
+        database.close_db(SERVICE_NAME)
         message = jsonify({"error":"the article you are looking for is not here"})
         message.status_code = 404
         return message
@@ -81,16 +83,16 @@ def delete_article(article_id):
         #decoding user authorization
         user = request.headers['Authorization'].strip().split(' ')
         username = base64.b64decode(user[1]).decode().split(':', 1)[0]
-        db=database.get_db()
+        db=database.get_db(SERVICE_NAME)
         for row in db.execute("SELECT id FROM articles WHERE id=(?) AND author=(?);", [article_id, username]):
             if row != None:
                 db.execute("DELETE FROM articles WHERE id=(?) AND author=(?)", [article_id, username])
                 db.commit()
-                database.close_db()
+                database.close_db(SERVICE_NAME)
                 message = jsonify({"success":"article deleted"})
                 message.status_code=200
                 return message
-        database.close_db()
+        database.close_db(SERVICE_NAME)
         message = jsonify({"error":"no such article exists"})
         message.status_code=404
         return message
@@ -103,12 +105,12 @@ def edit_article(article_id):
         #decoding user authorization
         user = request.headers['Authorization'].strip().split(' ')
         username = base64.b64decode(user[1]).decode().split(':', 1)[0]
-        db = database.get_db()
+        db = database.get_db(SERVICE_NAME)
         for row in db.execute("SELECT id FROM articles WHERE id=(?) AND author=(?);", [article_id, username]):
             if row != None:
                 db.execute("UPDATE articles SET content=(?), posted=CURRENT_TIMESTAMP WHERE id=(?) AND author=(?);", [request.get_json()['content'], article_id, username])
                 db.commit()
-                database.close_db()
+                database.close_db(SERVICE_NAME)
                 message = jsonify({"success":"content updated"})
                 message.status_code=200
                 return message
@@ -119,8 +121,7 @@ def edit_article(article_id):
 @app.route('/article/collect/<int:recent_articles>', methods=['GET'])
 def collect_article(recent_articles):
     if request.method == 'GET':
-        db = database.get_db()
-        print(recent_articles)
+        db = database.get_db(SERVICE_NAME)
         collect = list()
         if recent_articles == 0:
             message = jsonify({"error":"not going to attempt to retrieve zero articles"})
@@ -142,8 +143,7 @@ def collect_article(recent_articles):
 @app.route('/article/meta/<int:recent_articles>', methods=['GET'])
 def meta_articles(recent_articles):
     if request.method == 'GET':
-            db = database.get_db()
-            print(recent_articles)
+            db = database.get_db(SERVICE_NAME)
             collect = list()
             if recent_articles == 0:
                 message = jsonify({"error":"not going to attempt to retrieve zero articles"})

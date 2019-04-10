@@ -1,6 +1,8 @@
-import sys, sqlite3, bcrypt, base64, hashlib, bcrypt
-from flask import Flask, request, g, jsonify, Response
+import base64, hashlib, bcrypt, os
+from flask import Flask, request, jsonify
 from .data import db as database, auth
+
+SERVICE_NAME = os.path.basename(__file__)
 
 app = Flask(__name__)
 database.init_app(app)
@@ -34,16 +36,16 @@ def register_user():
           username = request.get_json()['username']
           hashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(request.get_json()['password'].encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe').decode('utf-8')
           full_name = request.get_json()['full_name']
-          db = database.get_db()       
+          db = database.get_db(SERVICE_NAME)
           for row in db.execute('SELECT username FROM users WHERE username=(?);', [username,]):
                if row != None:
-                    database.close_db()
+                    database.close_db(SERVICE_NAME)
                     message = jsonify({'error':'HTTP 409 Conflict'})
                     message.status_code = 409
                     return message
           db.execute('INSERT INTO users(username, password, full_name) VALUES (?,?,?);', [username, hashed, full_name])
           db.commit()
-          database.close_db()
+          database.close_db(SERVICE_NAME)
           message = jsonify({'success':'username has been registered'})
           message.status_code = 200
           return message
@@ -55,12 +57,12 @@ def delete_user():
           #decoding user authorization
           user = request.headers['Authorization'].strip().split(' ')
           username, password = base64.b64decode(user[1]).decode().split(':', 1)
-          db = database.get_db()
+          db = database.get_db(SERVICE_NAME)
           for row in db.execute('SELECT username FROM users WHERE username=(?);', [username,]):
                if row != None:
                     db.execute('DELETE FROM users WHERE username=(?);', [username])
                     db.commit()
-                    database.close_db()
+                    database.close_db(SERVICE_NAME)
                     print('deleted')
                     message = jsonify({'success':'user exists'})
                     message.status_code = 200
@@ -68,7 +70,7 @@ def delete_user():
                else:
                     message = jsonify({'error':'user doesnt exist'})
                     message.status_code = 401
-                    database.close_db()
+                    database.close_db(SERVICE_NAME)
                     return message
 
 @app.route('/user/changepw', methods=['POST'])
@@ -79,16 +81,16 @@ def change_password():
           username, password = base64.b64decode(user[1]).decode().split(':', 1)
           hashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(password.encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe').decode('utf-8')
           newhashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(request.get_json()['password'].encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe').decode('utf-8')
-          db = database.get_db()
+          db = database.get_db(SERVICE_NAME)
           for row in db.execute("SELECT username FROM users WHERE username=(?) AND password=(?);", [username, hashed]):
                if row != None:
                     db.execute("UPDATE users SET password=(?) WHERE username=(?) AND password=(?);", [newhashed, username, hashed])
                     db.commit()
-                    database.close_db()
+                    database.close_db(SERVICE_NAME)
                     message = jsonify({"success":"password updated"})
                     message.status_code=200
                     return message
-               db.close_db()
+               db.close_db(SERVICE_NAME)
                message = jsonify({"error":"could not change password"})
                message.status_code=404
                return message
