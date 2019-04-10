@@ -7,6 +7,8 @@ SERVICE_NAME = os.path.splitext(os.path.basename(__file__))[0]
 
 print(SERVICE_NAME)
 
+print(os.environ)
+
 database.init_app(app)
 basic_auth = auth.GetAuth()
 basic_auth.init_app(app)
