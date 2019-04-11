@@ -11,7 +11,7 @@ def latest_articles():
     if flask_request.method == 'GET':
         response = requests.get('http://localhost:5101/article/collect/10')
         article_collection = []
-        if response.json()['success']:
+        if response.status_code == requests.codes.ok:
             articles = response.json()['success']
             for article in articles:
                 article_collection.append(
@@ -30,30 +30,32 @@ def latest_articles():
                 items = article_collection
             )
         return feed.rss()
+        
 @app.route("/rss/<int:article_id>/feed", methods=['GET'])
 def feed_articles(article_id):
     if flask_request.method == 'GET':
-        print("A full feed containing the full text for each article, its tags as RSS categories, and a comment count.")
-        article = Item()
-        response = requests.get("https://127.0.0.1:5101/article/{:d}".format(article_id))
-        if response.json()['success']:
-            articleInfo = response.json()['success']
-            article.title = articleInfo['title']
-            article.author = articleInfo['author'],
-            article.description = articleInfo['content'],
-            article.pubDate= datetime.datetime.strptime(articleInfo['posted'], "%Y-%m-%d %H:%M:%S"),
-        response = requests.get("https://127.0.0.1:5101/article/{:d}/tags".format(article_id))
-        if response.json()['status'] == 200:
+        response = requests.get(f'http://127.0.0.1:5100/article/{article_id}')
+        article = Item
+        if response.status_code == requests.codes.ok:
+            articleInfo = response.json()
+            article = Item(
+                title = articleInfo['title'],
+                author = articleInfo['author'],
+                description = articleInfo['content'],
+                pubDate= datetime.datetime.strptime(articleInfo['posted'], "%Y-%m-%d %H:%M:%S")
+            )
+        response = requests.get(f'http://127.0.0.1:5200/article/{article_id}/tags')
+        if response.status_code == requests.codes.ok:
             article.categories = response.json()['tags']
-        response = requests.get("https://127.0.0.1:5201/article/{:d}/comments".format(article_id))
-        if response.json()['status'] == 200:
+        response = requests.get(f'http://127.0.0.1:5300/article/{article_id}/comments')
+        if response.status_code == requests.codes.ok:
             article.comments = response.json()['count']
         feed = Feed(
             title = "New Kids On The Blog RSS Feed",
-            link = "https://127.0.0.1:5101/article/{:d}".format(article_id),
+            link = f'http://127.0.0.1:5100/article/{article_id}',
             description = "RSS 2.0 feed generated with rfeed",
             language = "en-US",
-            items = article
+            items = [article]
         )
     return feed.rss()
 
