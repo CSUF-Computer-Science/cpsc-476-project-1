@@ -44,28 +44,24 @@ Using [Tuffix](https://github.com/kevinwortman/tuffix)? You'll also need this: `
 
 #### 5) Finally, the database must be initialized. From the top-level directory run the following command:
 
-`foreman run init-db`
+`foreman run init-db all`
 
 ### To Run
 
-Each microservice can be started individually by using the following commands:
+All microservices can be started in a formation using the following command
 
-`foreman run users`
-
-`foreman run articles`
-
-`foreman run tags`
-
-`foreman run comments`
+`foreman start -m users=3,articles=3,tags=3,comments=3`
 
 ### Networking
 
 | Service  | Port  |
 |----------|-------|
-| Users    | :5000 |
-| Articles | :5001 |
-| Tags     | :5002 |
-| Comments | :5003 |
+| Users    | :510n |
+| Articles | :520n |
+| Tags     | :530n |
+| Comments | :540n |
+
+*n indicates the individual instance of the microservice running in a formation. For three instances of the Users service, the instances should be running on ports 5100-5102.*
 
 ### API Documentation
 
@@ -75,7 +71,7 @@ API documentation is avaialble on our [Postman page](https://documenter.getpostm
 
 #### 1) Initialize the database with test data
 
-`foreman run init-data`
+`foreman run init-data all`
 
 #### 2) Run the tests
 
