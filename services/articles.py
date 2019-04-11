@@ -1,6 +1,6 @@
 import base64, os
 from flask import Flask, request, jsonify
-from data import db as database, auth
+from .data import db as database, auth
 app = Flask(__name__)
 
 SERVICE_NAME = os.path.splitext(os.path.basename(__file__))[0]
