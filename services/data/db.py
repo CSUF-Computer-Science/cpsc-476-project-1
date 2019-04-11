@@ -58,10 +58,7 @@ def init_db_cmd(service):
 @click.argument('service')
 @with_appcontext
 def reset_db_cmd(service):
-    services = ["articles", "comments", "tags", "users"]
-    if service == "all":
-        for service in services:
-            reset_db(service)
+    reset_db(service)
     init_db(service)
 
 
