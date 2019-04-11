@@ -56,12 +56,12 @@ All microservices can be started in a formation using the following command
 
 | Service  | Port  |
 |----------|-------|
-| Users    | :510n |
-| Articles | :520n |
-| Tags     | :530n |
-| Comments | :540n |
+| Articles | :500n |
+| Tags     | :510n |
+| Comments | :520n |
+| Users    | :530n |
 
-*n indicates the individual instance of the microservice running in a formation. For three instances of the Users service, the instances should be running on ports 5100-5102.*
+*n indicates the individual instance of the microservice running in a formation. For three instances of the Users service, the instances should be running on ports 5300-5302.*
 
 ### API Documentation
 
