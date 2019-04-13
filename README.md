@@ -7,6 +7,7 @@
 * Dayna Anderson
 * Joshua Ferrara
 * Hector Medina
+* Jon Mouchou
 
 ### The Setup
 
