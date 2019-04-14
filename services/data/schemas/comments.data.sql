@@ -1,1 +1,13 @@
 INSERT INTO comments (author, article, content) VALUES ("testuser", 1, "that's super cool");
+INSERT INTO comments (author, article, content) VALUES ("sykkid", 2, "I don't believe you're right at all");
+INSERT INTO comments (author, article, content) VALUES ("thebettermario", 2, "very brave");
+INSERT INTO comments (author, article, content) VALUES ("ucccoffee", 3, "drink more coffee its good for you");
+INSERT INTO comments (author, article, content) VALUES ("prezpretzel", 3, "tea, greater than coffee");
+INSERT INTO comments (author, article, content) VALUES ("sk8erboi", 4, "that's my favorite animal too");
+INSERT INTO comments (author, article, content) VALUES ("ringleader", 4, "they are so cute");
+INSERT INTO comments (author, article, content) VALUES ("pohtaytoe", 5, "a true best friend");
+INSERT INTO comments (author, article, content) VALUES ("elmerfudd", 6, "my favorite too");
+INSERT INTO comments (author, article, content) VALUES ("goodscholar", 7, "i feel like i learned a lot!");
+INSERT INTO comments (author, article, content) VALUES ("smartcookie", 8, "good to know");
+INSERT INTO comments (author, article, content) VALUES ("freshwater", 9, "everyone knows that!");
+INSERT INTO comments (author, article, content) VALUES ("pohtaytoe", 10, "who thought of that");
