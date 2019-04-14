@@ -130,7 +130,7 @@ def collect_article(recent_articles):
         for row in db.execute("SELECT id, title, content, author, posted FROM articles ORDER BY id DESC LIMIT (?);", [recent_articles,]):
             if row != None:
                 collect.append({
-                        "url" : "http://127.0.0.1:5001/articles/"+str(row[0]),
+                        "url" : "http://localhost/article/"+str(row[0]),
                         "title" : row[1],
                         "content" : row[2],
                         "author" : row[3],
@@ -152,17 +152,13 @@ def meta_articles(recent_articles):
             for row in db.execute("SELECT id, title, content, author, posted FROM articles ORDER BY id DESC LIMIT (?);", [recent_articles,]):
                 if row != None:
                     collect.append({
-                            "url" : "<url>http://127.0.0.1:5001/articles/"+str(row[0])+"</url>",
+                            "url" : "<url>http://localhost/article/"+str(row[0])+"</url>",
                             "title" : "<title>"+row[1]+"</title>",
                             "author" : "<author>"+row[3]+"</author>",
                             "posted" : "<pubDate>"+row[4]+"</pubDate>",
-                            "comments" : "<comments>http://127.0.0.1:5001/articles/"+str(row[0])+"/comments</comments>",
-                            "category" : "<category>http://127.0.0.1:5001/articles/"+str(row[0])+"/tags</category>"
+                            "comments" : "<comments>http://localhost/article/"+str(row[0])+"/comments</comments>",
+                            "category" : "<category>http://localhost/article/"+str(row[0])+"/tags</category>"
                         })
             message = jsonify({"success":collect})
             message.status_code = 200
             return message
-
-
-if __name__ == '__main__':
-     app.run("127.0.0.1", "5001")

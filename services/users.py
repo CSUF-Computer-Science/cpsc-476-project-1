@@ -94,7 +94,3 @@ def change_password():
                message = jsonify({"error":"could not change password"})
                message.status_code=404
                return message
-
-if __name__ == '__main__':
-     basic_auth.init_app(app)
-     app.run(host='127.0.0.1:5000')
