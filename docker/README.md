@@ -1,6 +1,6 @@
 # Docker Image
 
-## Into
+## Intro
 
 For those among us who run Linux and don't want to virtualize Tuffix or install the nginx package globally.
 
