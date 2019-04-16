@@ -103,22 +103,3 @@ stages:
         article_id: "/article/{article_id}"
         tags:
           - databases
-
-  - name: Add tag to a nonexistent article
-    request:
-      url: "http://localhost/tags/article/9001"
-      auth:
-        - testuser
-        - testuser
-      json:
-        TagNames:
-          - wrong
-      method: POST
-      headers:
-        content-type: application/json
-    response:
-      status_code: 409
-      headers:
-        content-type: application/json
-      body:
-        message: !anything
