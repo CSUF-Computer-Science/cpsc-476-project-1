@@ -3,7 +3,7 @@ test_name: Test article failure cases
 stages:
   - name: Create an article without auth
     request:
-      url: http://localhost:5001/article/new
+      url: http://localhost/article/new
       json:
         title: Student's name deletes entire database
         content: Lorem ipsum dolor sit amet
@@ -15,7 +15,7 @@ stages:
 
   - name: Create an article with incorrect password
     request:
-      url: http://localhost:5001/article/new
+      url: http://localhost/article/new
       auth:
         - testuser
         - badpassword
@@ -35,7 +35,7 @@ test_name: Article lifecycle test
 stages:
   - name: Create an article successfully
     request:
-      url: http://localhost:5001/article/new
+      url: http://localhost/article/new
       auth:
         - testuser
         - testuser
@@ -59,7 +59,7 @@ stages:
 
   - name: Retrieve newly created article
     request:
-      url: "http://localhost:5001/article/{article_id}"
+      url: "http://localhost/article/{article_id}"
       method: GET
       headers:
         content-type: application/json
@@ -75,7 +75,7 @@ stages:
 
   - name: Ensure newly created article is most recent
     request:
-      url: "http://localhost:5001/article/collect/1"
+      url: "http://localhost/article/collect/1"
       method: GET
       headers:
         content-type: application/json

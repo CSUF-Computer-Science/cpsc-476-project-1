@@ -7,15 +7,13 @@ SERVICE_NAME = os.path.splitext(os.path.basename(__file__))[0]
 app = Flask(__name__, instance_relative_config=True)
 app.config["DEBUG"] = True
 db.init_app(app)
-basic_auth = auth.GetAuth()
-basic_auth.init_app(app)
 
 # this function found here: http://blog.luisrei.com/articles/flaskrest.html
 @app.errorhandler(404)
 def not_found(error=None):
     message = {
         'status': 404,
-        'message': 'Not Found: ' + request.url,
+        'message': 'Not Found: ' + request.headers['X-Original-URI'],
     }
     resp = jsonify(message)
     resp.status_code = 404
@@ -25,7 +23,7 @@ def not_found(error=None):
 def conflict(error=None):
     message = {
         'status': 409,
-        'message': 'Error: Conflict at ' + request.url +' Code '+ str(error)
+        'message': 'Error: Conflict at ' + request.headers['X-Original-URI'] +' Code '+ str(error)
     }
     resp = jsonify(message)
     resp.status_code = 409
@@ -54,7 +52,7 @@ def getArticles(name):
         db.close_db(SERVICE_NAME)
         return not_found()
 
-@app.route('/article/<id>/tags', methods = ['GET'])
+@app.route('/tags/article/<id>', methods = ['GET','POST', 'DELETE'])
 def tags(id):
     #get all tags connected to an article
     if request.method == 'GET':
@@ -77,16 +75,7 @@ def tags(id):
         else:
             db.close_db(SERVICE_NAME)
             return not_found()
-    else:
-        resp = jsonify({'message': request.url + " contains no such method.",
-                    'status':405})
-        return resp
-
-@app.route('/article/<id>/update_tags', methods = ['POST', 'DELETE'])
-@basic_auth.required
-def update_tag(id):
-    #post 1 or more tags to an article
-    if request.method == 'POST':
+    elif request.method == 'POST':
         mydb = db.get_db(SERVICE_NAME)
         content = request.get_json()
         tagnames = content.get('TagNames'), None
@@ -158,4 +147,3 @@ def update_tag(id):
         resp = jsonify({'message': request.url + " contains no such method.",
                     'status':405})
         return resp
-

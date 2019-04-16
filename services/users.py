@@ -1,13 +1,49 @@
 import base64, hashlib, bcrypt, os
 from flask import Flask, request, jsonify
 from .data import db as database, auth
+import re
 
 SERVICE_NAME = os.path.splitext(os.path.basename(__file__))[0]
 
 app = Flask(__name__)
 database.init_app(app)
+
 basic_auth = auth.GetAuth()
 basic_auth.init_app(app)
+
+allow_anon_auth = auth.AllowAnonymousAuth()
+allow_anon_auth.init_app(app)
+
+def authReq(originalURI):
+     paths={
+          '/article/new':basic_auth,
+          '/article/delete/\d+':basic_auth,
+          '/article/edit/\d+':basic_auth,
+          '/article/\d+/delete_comments':basic_auth,
+          '/article/\d+/update_tags':basic_auth,
+          '/user/delete':basic_auth,
+          '/user/changepw':basic_auth,
+          '/article/\d+/comments':allow_anon_auth
+     }
+
+     for path,auth in paths.items():
+         if re.search(path,originalURI):
+              return auth
+     
+     return None
+
+@app.route('/auth')
+def authorize():
+     authType = authReq(request.headers['X-Original-URI'])
+
+     if authType and not authType.authenticate():
+          resp=jsonify({'status': 'Unauthorized user'})
+          resp.status_code = 401
+     else:
+          resp=jsonify({'status': 'OK'})
+          resp.status_code = 200
+     return resp
+
 
 # this function found here: http://blog.luisrei.com/articles/flaskrest.html
 @app.errorhandler(404)

@@ -43,9 +43,22 @@ Using [Tuffix](https://github.com/kevinwortman/tuffix)? You'll also need this: `
 
 `sudo apt install ruby-foreman`
 
-#### 5) Finally, the database must be initialized. From the top-level directory run the following command:
+#### 5) Nginx needs to be installed for load balancing support:
 
-`foreman run init-db all`
+`sudo apt install nginx nginx-extras`
+
+#### 6) Delete default port 80 file
+`sudo rm /etc/nginx/sites-enabled/default`
+
+#### 7) Copy blog file from project to your Nginx sites-available directory. Create a symlink to the sites-enabled and restart Nginx service:
+
+`sudo cp blog /etc/nginx/sites-available`<br />
+`sudo ln -s /etc/nginx/sites-available/blog /etc/nginx/sites-enabled/blog`<br />
+`sudo service nginx restart`
+
+#### 8) Finally, the database must be initialized. From the top-level directory run the following command:
+
+`foreman run init-db`
 
 ### To Run
 
@@ -72,7 +85,7 @@ API documentation is avaialble on our [Postman page](https://documenter.getpostm
 
 #### 1) Initialize the database with test data
 
-`foreman run init-data all`
+`foreman run init-data`
 
 #### 2) Run the tests
 

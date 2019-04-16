@@ -6,8 +6,6 @@ app = Flask(__name__)
 SERVICE_NAME = os.path.splitext(os.path.basename(__file__))[0]
 
 database.init_app(app)
-basic_auth = auth.GetAuth()
-basic_auth.init_app(app)
 
 
 # this function found here: http://blog.luisrei.com/articles/flaskrest.html
@@ -15,7 +13,7 @@ basic_auth.init_app(app)
 def not_found(error=None):
     message = {
         'status': 404,
-        'message': 'Not Found: ' + request.url,
+        'message': 'Not Found: ' + request.headers['X-Original-URI'],
     }
     resp = jsonify(message)
     resp.status_code = 404
@@ -25,14 +23,13 @@ def not_found(error=None):
 def conflict(error=None):
     message = {
         'status': 409,
-        'message': 'Error: Conflict at ' + request.url +' Code '+ error.message
+        'message': 'Error: Conflict at ' + request.headers['X-Original-URI'] +' Code '+ error.message
     }
     resp = jsonify(message)
     resp.status_code = 409
     return resp
     
 @app.route('/article/new', methods=['POST'])
-@basic_auth.required
 def new_article():
     if request.method == 'POST':
         #decoding user authorization
@@ -77,7 +74,6 @@ def find_article(article_id):
         return message
 
 @app.route('/article/delete/<int:article_id>', methods=['DELETE'])
-@basic_auth.required
 def delete_article(article_id):
     if request.method == 'DELETE':
         #decoding user authorization
@@ -99,7 +95,6 @@ def delete_article(article_id):
 
 
 @app.route('/article/edit/<int:article_id>', methods=['POST'])
-@basic_auth.required
 def edit_article(article_id):
     if request.method == 'POST':
         #decoding user authorization
