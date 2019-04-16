@@ -3,7 +3,7 @@ test_name: Add an article with a new tag
 stages:
   - name: Create an article
     request:
-      url: http://localhost/tags/article/new
+      url: http://localhost/article/new
       auth:
         - testuser
         - testuser
