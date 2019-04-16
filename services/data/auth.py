@@ -6,11 +6,9 @@ from . import db as database
 
 class GetAuth(BasicAuth):
     def check_credentials(self, username, password):
-        # TODO: remove this
-        return True
 
         hashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(password.encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe').decode('utf-8')
-        db = database.get_db()
+        db = database.get_db('users')
         results = db.execute('SELECT password FROM users WHERE username=(?);', [username]).fetchall()
         if len(results) > 0:
             dbPass = results[0][0]
@@ -30,8 +28,6 @@ class GetAuth(BasicAuth):
 # properly authenticate with the database.
 class AllowAnonymousAuth(BasicAuth):
     def authenticate(self):
-        # TODO: remove this
-        return True
 
         auth = request.authorization
         if auth:
@@ -41,11 +37,9 @@ class AllowAnonymousAuth(BasicAuth):
 
 
     def check_credentials(self, username, password):
-        # TODO: remove this
-        return True
 
         hashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(password.encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe').decode('utf-8')
-        db = database.get_db()
+        db = database.get_db('users')
         results = db.execute('SELECT password FROM users WHERE username=(?);', [username]).fetchall()
         if len(results) > 0:
             dbPass = results[0][0]

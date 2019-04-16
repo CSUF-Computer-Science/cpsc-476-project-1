@@ -3,7 +3,7 @@ test_name: Add an article with a new tag
 stages:
   - name: Create an article
     request:
-      url: http://localhost:5001/article/new
+      url: http://localhost/tags/article/new
       auth:
         - testuser
         - testuser
@@ -27,7 +27,7 @@ stages:
 
   - name: Add a tag to that article
     request:
-      url: "http://localhost:5002/article/{article_id}/update_tags"
+      url: "http://localhost/tags/article/{article_id}"
       auth:
         - testuser
         - testuser
@@ -48,7 +48,7 @@ stages:
 
   - name: List articles with databases tag
     request:
-      url: http://localhost:5002/tags/databases
+      url: http://localhost/tags/databases
       method: GET
       headers:
         content-type: application/json
@@ -63,7 +63,7 @@ stages:
 
   - name: Add a tag to that article
     request:
-      url: "http://localhost:5002/article/{article_id}/update_tags"
+      url: "http://localhost/tags/article/{article_id}"
       auth:
         - testuser
         - testuser
@@ -85,7 +85,7 @@ stages:
 
   - name: Delete a tag from an article
     request:
-      url: "http://localhost:5002/article/{article_id}/update_tags"
+      url: "http://localhost/tags/article/{article_id}"
       auth:
         - testuser
         - testuser
@@ -106,7 +106,7 @@ stages:
 
   - name: Add tag to a nonexistent article
     request:
-      url: "http://localhost:5002/article/9001/update_tags"
+      url: "http://localhost/tags/article/9001"
       auth:
         - testuser
         - testuser

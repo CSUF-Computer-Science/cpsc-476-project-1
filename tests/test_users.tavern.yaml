@@ -3,7 +3,7 @@ test_name: Attempt to change password for nonexistent user.
 stages:
   - name: Make sure passwords can not be changed if a user does not exist. The user wont pass authentication.
     request:
-      url: http://localhost:5000/user/changepw
+      url: http://localhost/user/changepw
       auth:
         - im.a.fake.username
         - password
@@ -22,7 +22,7 @@ test_name: Test user lifecycle
 stages:
   - name: Make sure users can be created
     request:
-      url: http://localhost:5000/user/register
+      url: http://localhost/user/register
       json:
         username: bobby.tables
         password: hunter2
@@ -39,7 +39,7 @@ stages:
 
   - name: Make sure users can change their passwords
     request:
-      url: http://localhost:5000/user/changepw
+      url: http://localhost/user/changepw
       auth:
         - bobby.tables
         - hunter2
@@ -55,7 +55,7 @@ stages:
 
   - name: Make sure users can delete their accounts
     request:
-      url: http://localhost:5000/user/delete
+      url: http://localhost/user/delete
       auth:
         - bobby.tables
         - hunter3
@@ -65,7 +65,7 @@ stages:
 
   - name: Make sure passwords can't be changed for nonexistent accounts. The user wont pass authentication.
     request:
-      url: http://localhost:5000/user/changepw
+      url: http://localhost/user/changepw
       auth:
         - bobby.tables
         - hunter3

@@ -8,18 +8,13 @@ app = Flask(__name__, instance_relative_config=True)
 app.config["DEBUG"] = True
 db.init_app(app)
 
-basic_auth = auth.GetAuth()
-basic_auth.init_app(app)
-
-allow_anon_auth = auth.AllowAnonymousAuth()
-allow_anon_auth.init_app(app)
 
 # this function found here: http://blog.luisrei.com/articles/flaskrest.html
 @app.errorhandler(404)
 def not_found(error=None):
     message = {
         'status': 404,
-        'message': 'Not Found: ' + request.url,
+        'message': 'Not Found: ' + request.headers['X-Original-URI'],
     }
     resp = jsonify(message)
     resp.status_code = 404
@@ -29,14 +24,13 @@ def not_found(error=None):
 def conflict(error=None):
     message = {
         'status': 409,
-        'message': 'Error: Conflict at ' + request.url +' Code '+ str(error)
+        'message': 'Error: Conflict at ' + request.headers['X-Original-URI'] +' Code '+ str(error)
     }
     resp = jsonify(message)
     resp.status_code = 409
     return resp
 
-@app.route('/article/<id>/comments', methods = ['GET', 'POST'])
-@allow_anon_auth.required
+@app.route('/comments/article/<id>', methods = ['GET', 'POST'])
 def comments(id):
     #get number of comments connected to an article
     if request.method == 'GET':
@@ -104,8 +98,7 @@ def comments(id):
         return resp
 
 #delete comment from an article
-@app.route('/article/<id>/delete_comments', methods = ['DELETE'])
-@basic_auth.required
+@app.route('/comments/article/<id>', methods = ['DELETE'])
 def delete_comment(id):
     if request.method == 'DELETE':
         mydb = db.get_db(SERVICE_NAME)
@@ -145,7 +138,7 @@ def delete_comment(id):
         return resp
 
 #get n most recent article comments.
-@app.route('/article/<id>/comments/<number>', methods=['GET'])
+@app.route('/comments/<number>/article/<id>', methods=['GET'])
 def getComments(id, number):
     mydb = db.get_db(SERVICE_NAME)
     try:
