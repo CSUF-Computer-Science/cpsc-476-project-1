@@ -1,24 +1,6 @@
 test_name: Test comments lifecycle
 
 stages:
-  - name: Make sure a comment cant be made an orphan (doesn't have a valid parent article)
-    request:
-      url: http://localhost/comments/article/500
-      auth:
-        - testuser
-        - testuser
-      json:
-        text: this is a test comment
-      method: POST
-      headers:
-        content-type: application/json
-    response:
-      status_code: 409
-      headers:
-        content-type: application/json
-      body:
-        status: 409
-        message: "Error: Conflict at http://localhost/comments/article/500 Code <class 'sqlite3.IntegrityError'>"
   - name: Post an anonymous comment
     request:
       url: http://localhost/comments/article/1
@@ -34,7 +16,7 @@ stages:
       body:
         article_id: /article/1
         comments:
-          - id: 2
+          - id: 14
             author: Anonymous Coward
             content: this is a test comment
             posted: !anything
@@ -60,7 +42,7 @@ stages:
       body:
         article_id: /article/1
         comments:
-          - id: 3
+          - id: 15
             author: testuser
             content: this is a test authed comment
             posted: !anything

@@ -64,13 +64,6 @@ def comments(id):
             return resp 
         else:
             try:
-                mydb.execute('SELECT id FROM articles WHERE id=?', id)
-            except:
-                
-                resp=jsonify({"status":409,"message": "Error: Conflict at http://localhost/comments/article/"+id+" Code <class 'sqlite3.IntegrityError'>"})
-                resp.status_code = 409
-                return resp 
-            try:
                 mydb.execute(
                     'INSERT INTO comments(author, content, article) VALUES (?,?,?)', [user, body, id])
             except:
