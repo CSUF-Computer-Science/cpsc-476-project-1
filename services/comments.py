@@ -30,7 +30,7 @@ def conflict(error=None):
     resp.status_code = 409
     return resp
 
-@app.route('/comments/article/<id>', methods = ['GET', 'POST'])
+@app.route('/comments/article/<id>', methods = ['GET', 'DELETE'])
 def comments(id):
     #get number of comments connected to an article
     if request.method == 'GET':
@@ -52,9 +52,50 @@ def comments(id):
             db.close_db(SERVICE_NAME)
             return not_found()
             
-    #post a new comment on an article
-    elif request.method == 'POST':
+    #remove a comment on an article
+    elif request.method == 'DELETE':
         mydb = db.get_db(SERVICE_NAME)
+        content = request.get_json()
+        comment_id = content.get('CommentId', None)
+        if comment_id == None:
+            resp = jsonify({"error": "Error: Missing Arguments. Please specify TagName(s) to add."})
+            resp.status_code = 400
+            return resp
+        else:
+            try:
+                mydb.execute('DELETE FROM comments WHERE id=? AND article=?', [comment_id, id])
+            except:
+                e=sys.exc_info()[0]
+                return conflict(e)
+            mydb.commit()
+            try: 
+                comments = mydb.execute(
+                    "SELECT * FROM comments WHERE article=? ORDER BY posted DESC", [id]).fetchall()
+            except:
+                e=sys.exc_info()[0]
+                return conflict(e)
+            db.close_db(SERVICE_NAME)
+            article_id = "/article/"+id
+            results = {'article_id': article_id,
+                       'comments': []}
+            for c in comments:
+                results['comments'].append({
+
+                })
+            resp = jsonify(results)
+            resp.status_code = 200
+            return resp
+    else:
+        resp = jsonify({'message': request.url + " contains no such method.",
+                  'status': 405})
+        return resp
+
+
+        
+#post comment to an article
+@app.route('/comments/new/article/<id>', methods = ['POST'])
+def post_comment(id):
+    mydb = db.get_db(SERVICE_NAME)
         content = request.get_json()
         user= auth.getUser()
         body= content.get('text', None)
@@ -97,45 +138,7 @@ def comments(id):
                   'status': 405})
         return resp
 
-#delete comment from an article
-@app.route('/comments/article/<id>', methods = ['DELETE'])
-def delete_comment(id):
-    if request.method == 'DELETE':
-        mydb = db.get_db(SERVICE_NAME)
-        content = request.get_json()
-        comment_id = content.get('CommentId', None)
-        if comment_id == None:
-            resp = jsonify({"error": "Error: Missing Arguments. Please specify TagName(s) to add."})
-            resp.status_code = 400
-            return resp
-        else:
-            try:
-                mydb.execute('DELETE FROM comments WHERE id=? AND article=?', [comment_id, id])
-            except:
-                e=sys.exc_info()[0]
-                return conflict(e)
-            mydb.commit()
-            try: 
-                comments = mydb.execute(
-                    "SELECT * FROM comments WHERE article=? ORDER BY posted DESC", [id]).fetchall()
-            except:
-                e=sys.exc_info()[0]
-                return conflict(e)
-            db.close_db(SERVICE_NAME)
-            article_id = "/article/"+id
-            results = {'article_id': article_id,
-                       'comments': []}
-            for c in comments:
-                results['comments'].append({
-
-                })
-            resp = jsonify(results)
-            resp.status_code = 200
-            return resp
-    else:
-        resp = jsonify({'message': request.url + " contains no such method.",
-                  'status': 405})
-        return resp
+        
 
 #get n most recent article comments.
 @app.route('/comments/<number>/article/<id>', methods=['GET'])

@@ -3,7 +3,7 @@ test_name: Test comments lifecycle
 stages:
   - name: Post an anonymous comment
     request:
-      url: http://localhost/comments/article/1
+      url: http://localhost/comments/new/article/1
       json:
         text: this is a test comment
       method: POST
@@ -26,7 +26,7 @@ stages:
             posted: !anything
   - name: Make sure an authenticated comment can be posted
     request:
-      url: http://localhost/comments/article/1
+      url: http://localhost/comments/new/article/1
       auth:
         - testuser
         - testuser

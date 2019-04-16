@@ -19,11 +19,11 @@ def authReq(originalURI):
           '/article/new':basic_auth,
           '/article/delete/\d+':basic_auth,
           '/article/edit/\d+':basic_auth,
-          '/article/\d+/delete_comments':basic_auth,
-          '/article/\d+/update_tags':basic_auth,
+          '/comments/article/\d+':basic_auth,
+          '/tags/article/\d+':basic_auth,
           '/user/delete':basic_auth,
           '/user/changepw':basic_auth,
-          '/article/\d+/comments':allow_anon_auth
+          '/comments/new/article/\d+':allow_anon_auth
      }
 
      for path,auth in paths.items():

@@ -52,30 +52,10 @@ def getArticles(name):
         db.close_db(SERVICE_NAME)
         return not_found()
 
-@app.route('/tags/article/<id>', methods = ['GET','POST', 'DELETE'])
+@app.route('/tags/article/<id>', methods = ['POST', 'DELETE'])
 def tags(id):
-    #get all tags connected to an article
-    if request.method == 'GET':
-        mydb = db.get_db(SERVICE_NAME)
-        try:
-            results = mydb.execute(
-                "SELECT name FROM tags WHERE article=?", [id]).fetchall()
-        except:
-            e=sys.exc_info()[0]
-            return conflict(e)
-        if results:
-            resultsOut = {'article_id': f"/article/{id}",
-                          'tags': []}
-            for t in results:
-                resultsOut['tags'].append(t[0])
-            resp = jsonify(resultsOut)
-            resp.status_code = 200
-            db.close_db(SERVICE_NAME)
-            return resp
-        else:
-            db.close_db(SERVICE_NAME)
-            return not_found()
-    elif request.method == 'POST':
+
+    if request.method == 'POST':
         mydb = db.get_db(SERVICE_NAME)
         content = request.get_json()
         tagnames = content.get('TagNames'), None
@@ -143,6 +123,34 @@ def tags(id):
             resp = jsonify(results)
             resp.status_code = 200
             return resp
+    else:
+        resp = jsonify({'message': request.url + " contains no such method.",
+                    'status':405})
+        return resp
+
+@app.route('/tags/all/article/<id>', methods = ['GET'])
+def getTags(id):
+        #get all tags connected to an article
+    if request.method == 'GET':
+        mydb = db.get_db(SERVICE_NAME)
+        try:
+            results = mydb.execute(
+                "SELECT name FROM tags WHERE article=?", [id]).fetchall()
+        except:
+            e=sys.exc_info()[0]
+            return conflict(e)
+        if results:
+            resultsOut = {'article_id': f"/article/{id}",
+                          'tags': []}
+            for t in results:
+                resultsOut['tags'].append(t[0])
+            resp = jsonify(resultsOut)
+            resp.status_code = 200
+            db.close_db(SERVICE_NAME)
+            return resp
+        else:
+            db.close_db(SERVICE_NAME)
+            return not_found()
     else:
         resp = jsonify({'message': request.url + " contains no such method.",
                     'status':405})
