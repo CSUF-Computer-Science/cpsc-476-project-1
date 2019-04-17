@@ -99,10 +99,6 @@ def post_comment(id):
     content = request.get_json()
     user=auth.getUser()
 
-    print('auth asdasdasd')
-    print(user)
-    sys.stdout.flush()
-
     body= content.get('text', None)
     if body==None:
         resp = jsonify({"message": "Error: Missing Arguments. Please specify Username and Comment Text"})

@@ -26,14 +26,8 @@ def authReq(originalURI):
           '\/comments\/new\/article\/\d+':allow_anon_auth
      }
 
-     print("-- auth stuff --")
-     print(originalURI)
-     sys.stdout.flush()
      for path,auth in paths.items():
          if re.search(path,originalURI):
-              print("-- match --")
-              print(path)
-              sys.stdout.flush()
               return auth
      
      return None
@@ -105,7 +99,6 @@ def delete_user():
                     db.execute('DELETE FROM users WHERE username=(?);', [username])
                     db.commit()
                     database.close_db(SERVICE_NAME)
-                    print('deleted')
                     message = jsonify({'success':'user exists'})
                     message.status_code = 200
                     return message

@@ -59,14 +59,12 @@ def tags(id):
         mydb = db.get_db(SERVICE_NAME)
         content = request.get_json()
         tagnames = content.get('TagNames'), None
-        print(tagnames)
         if tagnames == None:
             resp = jsonify({"error": "Error: Missing Arguments. Please specify TagName(s) to add."})
             resp.status_code = 400
             return resp
         else:
             for t in tagnames[0]:
-                print(t)
                 try:
                     mydb.execute('INSERT INTO tags(name, article) VALUES (?,?)', [t, id])
                     mydb.commit()
@@ -101,7 +99,6 @@ def tags(id):
             return resp
         else:
             for t in tagnames[0]:
-                print(t)
                 try:
                     mydb.execute('DELETE FROM tags WHERE name=? AND article=?', [t, id])
                 except:

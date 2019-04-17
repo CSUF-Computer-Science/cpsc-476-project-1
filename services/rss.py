@@ -40,7 +40,6 @@ def feed_articles():
             articles = response.json()['success']
             for article in articles:
                 article_id = article['url'].split('/')[-1]
-                print(article)
                 articleItem = Item(
                     title = article['title'],
                     link = f'https://localhost/article/{article_id}',
