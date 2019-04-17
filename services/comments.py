@@ -96,46 +96,47 @@ def comments(id):
 @app.route('/comments/new/article/<id>', methods = ['POST'])
 def post_comment(id):
     mydb = db.get_db(SERVICE_NAME)
-        content = request.get_json()
-        user= auth.getUser()
-        body= content.get('text', None)
-        if body==None:
-            resp = jsonify({"message": "Error: Missing Arguments. Please specify Username and Comment Text"})
-            resp.status_code = 400
-            return resp 
-        else:
-            try:
-                mydb.execute(
-                    'INSERT INTO comments(author, content, article) VALUES (?,?,?)', [user, body, id])
-            except:
-                e=sys.exc_info()[0]
-                return conflict(e)
-            mydb.commit()
-            try:
-                comments = mydb.execute(
-                    "SELECT id,author,content,posted FROM comments WHERE article=? ORDER BY posted DESC", [id]).fetchall()
-            except:
-                e=sys.exc_info()[0]
-                return conflict(e)
-            db.close_db(SERVICE_NAME)
-            article_id = "/article/"+ id
-            location = article_id + "/comments/"
-            results = {'article_id': article_id,
-                       'comments': []}
-            for c in comments:
-                results['comments'].append({
-                    "id": c[0],
-                    "author": c[1],
-                    "content": c[2],
-                    "posted": c[3],
-                })
-            resp = jsonify(results)
-            resp.status_code = 200
-            resp.headers['Location']=location
-            return resp
+    content = request.get_json()
+    user=auth.getUser()
+
+    print('auth asdasdasd')
+    print(user)
+    sys.stdout.flush()
+
+    body= content.get('text', None)
+    if body==None:
+        resp = jsonify({"message": "Error: Missing Arguments. Please specify Username and Comment Text"})
+        resp.status_code = 400
+        return resp 
     else:
-        resp = jsonify({'message': request.url + " contains no such method.",
-                  'status': 405})
+        try:
+            mydb.execute(
+                'INSERT INTO comments(author, content, article) VALUES (?,?,?)', [user, body, id])
+        except:
+            e=sys.exc_info()[0]
+            return conflict(e)
+        mydb.commit()
+        try:
+            comments = mydb.execute(
+                "SELECT id,author,content,posted FROM comments WHERE article=? ORDER BY posted DESC", [id]).fetchall()
+        except:
+            e=sys.exc_info()[0]
+            return conflict(e)
+        db.close_db(SERVICE_NAME)
+        article_id = "/article/"+ id
+        location = article_id + "/comments/"
+        results = {'article_id': article_id,
+                    'comments': []}
+        for c in comments:
+            results['comments'].append({
+                "id": c[0],
+                "author": c[1],
+                "content": c[2],
+                "posted": c[3],
+            })
+        resp = jsonify(results)
+        resp.status_code = 200
+        resp.headers['Location']=location
         return resp
 
         

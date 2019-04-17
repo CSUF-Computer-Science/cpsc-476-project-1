@@ -1,1 +1,76 @@
-../blog
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+
+	root /var/www/html;
+
+	index index.html index.htm index.nginx-debian.html;
+
+	server_name 127.0.0.1 localhost;
+
+	location / {
+		auth_request /auth;
+		auth_request_set $auth_status $upstream_status;
+		try_files $uri $uri/ =404;
+	}
+
+	location /auth {
+		internal;
+		proxy_pass http://user/auth;
+		proxy_pass_request_body off;
+		proxy_set_header Content-Length "";
+		proxy_set_header X-Original-URI $request_uri;
+	}
+
+	location /article {
+		auth_request /auth;
+		auth_request_set $auth_status $upstream_status;
+		proxy_pass http://article;
+		proxy_set_header X-Original-URI $request_uri;
+	}
+
+	location /tags {
+		auth_request /auth;
+		auth_request_set $auth_status $upstream_status;
+		proxy_pass http://tags;
+		proxy_set_header X-Original-URI $request_uri;
+	}
+
+	location /comments {
+		auth_request /auth;
+		auth_request_set $auth_status $upstream_status;
+		proxy_pass http://comments;
+		proxy_set_header X-Original-URI $request_uri;
+	}
+
+	location /user {
+		auth_request /auth;
+		auth_request_set $auth_status $upstream_status;
+		proxy_pass http://user;
+		proxy_set_header X-Original-URI $request_uri;
+	}
+}
+
+upstream article {
+	server 127.0.0.1:5000;
+	server 127.0.0.1:5001;
+	server 127.0.0.1:5002;
+}
+
+upstream tags {
+	server 127.0.0.1:5100;
+	server 127.0.0.1:5101;
+	server 127.0.0.1:5102;
+}
+
+upstream comments {
+	server localhost:5200;
+	server localhost:5201;
+	server localhost:5202;
+}
+
+upstream user {
+	server localhost:5300;
+	server localhost:5301;
+	server localhost:5302;
+}

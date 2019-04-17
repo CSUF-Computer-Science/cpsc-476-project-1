@@ -46,7 +46,7 @@ stages:
             author: testuser
             content: this is a test authed comment
             posted: !anything
-          - id: 2
+          - id: 14 
             author: Anonymous Coward
             content: this is a test comment
             posted: !anything

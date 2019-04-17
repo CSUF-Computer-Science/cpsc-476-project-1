@@ -1,4 +1,4 @@
-import base64, hashlib, bcrypt, os
+import base64, hashlib, bcrypt, os, sys
 from flask import Flask, request, jsonify
 from .data import db as database, auth
 import re
@@ -23,11 +23,17 @@ def authReq(originalURI):
           '/tags/article/\d+':basic_auth,
           '/user/delete':basic_auth,
           '/user/changepw':basic_auth,
-          '/comments/new/article/\d+':allow_anon_auth
+          '\/comments\/new\/article\/\d+':allow_anon_auth
      }
 
+     print("-- auth stuff --")
+     print(originalURI)
+     sys.stdout.flush()
      for path,auth in paths.items():
          if re.search(path,originalURI):
+              print("-- match --")
+              print(path)
+              sys.stdout.flush()
               return auth
      
      return None

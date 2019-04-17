@@ -1,4 +1,4 @@
-import bcrypt, base64, hashlib
+import bcrypt, base64, hashlib, sys
 from flask_basicauth import BasicAuth
 from flask.cli import with_appcontext
 from flask import request
@@ -29,10 +29,21 @@ class GetAuth(BasicAuth):
 class AllowAnonymousAuth(BasicAuth):
     def authenticate(self):
 
+        print('authenticate')
+
         auth = request.authorization
+
+        print(auth)
+
+        sys.stdout.flush()
+
         if auth:
+            print('a')
+            sys.stdout.flush()
             return auth and auth.type == 'basic' and self.check_credentials(auth.username, auth.password)
         else:
+            print('b')
+            sys.stdout.flush()
             return AllowAnonymousAuth.check_credentials(self, "Anonymous Coward", "Anonymous Coward")
 
 
@@ -55,4 +66,10 @@ class AllowAnonymousAuth(BasicAuth):
         return True
 
 def getUser():
-    return (hasattr(request, "user") and request.user["username"]) or "Anonymous Coward"
+    print('i just wanna de already')
+    print(request.authorization)
+    sys.stdout.flush()
+    if hasattr(request, "authorization") and hasattr(request.authorization, "username"):
+        return request.authorization.username
+    else: 
+        return "Anonymous Coward"
