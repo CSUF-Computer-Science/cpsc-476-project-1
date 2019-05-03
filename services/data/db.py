@@ -2,6 +2,9 @@ import sqlite3, click, os.path
 from flask import current_app, g
 from flask.cli import with_appcontext
 
+from cassandra.cluster import Cluster, NoHostAvailable
+
+cluster = Cluster(['172.17.0.2'])
 
 def init_app(app):
     app.teardown_appcontext(close_db)
@@ -11,26 +14,21 @@ def init_app(app):
 
 
 def get_db(service):
-    db = getattr(g, f"_database{service}", None)
-    if db not in g:
-        db = g.database = sqlite3.connect(f"{service}.db")
-    return db
+    return cluster.connect('blog')
 
 
 def close_db(service, e=None):
-    db = getattr(g, f"_database{service}", None)
-    if db is not None:
-        db.close()
+    pass
 
 
-def init_db(service):
-    with current_app.app_context():
-        db = get_db(service)
-    with current_app.open_resource(f'data/schemas/{service}.sql') as f:
-        content = f.read().decode()
-        db.executescript(content)
-    db.commit()
-    click.echo(f"Initialized database for {service}")
+def init_db():
+    db = cluster.connect()
+    with current_app.open_resource(f'data/schemas/blog.cql') as f:
+        content = f.readlines()
+        for line in content:
+            print("Ran: ", line.decode('utf-8'))
+            db.execute(line.decode('utf-8'))
+    click.echo(f"Initialized database for blog")
 
 
 def reset_db(service):
@@ -44,15 +42,7 @@ def reset_db(service):
 @click.argument('service')
 @with_appcontext
 def init_db_cmd(service):
-    services = ["articles", "comments", "tags", "users"]
-    if service == "all":
-        for service in services:
-            init_db(service)
-    elif service in services:
-        init_db(service)
-    else:
-        click.echo(f"{service} is not one of [comments, tags, users, articles, all]")
-
+    init_db()
 
 @click.command('reset-db')
 @click.argument('service')
