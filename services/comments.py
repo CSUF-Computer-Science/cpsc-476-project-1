@@ -46,10 +46,8 @@ def comments(id):
                 "count": results[0][0]
             })
             resp.status_code = 200
-            db.close_db(SERVICE_NAME)
             return resp
         else:
-            db.close_db(SERVICE_NAME)
             return not_found()
             
     #remove a comment on an article
@@ -74,7 +72,6 @@ def comments(id):
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
-            db.close_db(SERVICE_NAME)
             article_id = "/article/"+id
             results = {'article_id': article_id,
                        'comments': []}
@@ -118,7 +115,6 @@ def post_comment(id):
         except:
             e=sys.exc_info()[0]
             return conflict(e)
-        db.close_db(SERVICE_NAME)
         article_id = "/article/"+ id
         location = article_id + "/comments/"
         results = {'article_id': article_id,
@@ -163,9 +159,7 @@ def getComments(id, number):
             })
         resp = jsonify(out)
         resp.status_code = 200
-        db.close_db(SERVICE_NAME)
         return resp
     else:
-        db.close_db(SERVICE_NAME)
         return not_found()
 

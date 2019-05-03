@@ -46,10 +46,8 @@ def getArticles(name):
             resultsOut['articles'].append(f"/article/{t[0]}")
         resp = jsonify(resultsOut)
         resp.status_code = 200
-        db.close_db(SERVICE_NAME)
         return resp
     else:
-        db.close_db(SERVICE_NAME)
         return not_found()
 
 @app.route('/tags/article/<id>', methods = ['POST', 'DELETE'])
@@ -77,7 +75,6 @@ def tags(id):
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)    
-            db.close_db(SERVICE_NAME)
             article_id = "/article/"+id
             location = article_id + "/tags/"
             results = {'article_id': article_id,
@@ -111,7 +108,6 @@ def tags(id):
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
-            db.close_db(SERVICE_NAME)
             article_id = "/article/"+id
             results = {'article_id': article_id,
                        'tags': []}
@@ -143,10 +139,8 @@ def getTags(id):
                 resultsOut['tags'].append(t[0])
             resp = jsonify(resultsOut)
             resp.status_code = 200
-            db.close_db(SERVICE_NAME)
             return resp
         else:
-            db.close_db(SERVICE_NAME)
             return not_found()
     else:
         resp = jsonify({'message': request.url + " contains no such method.",

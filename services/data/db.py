@@ -7,7 +7,6 @@ from cassandra.cluster import Cluster, NoHostAvailable
 cluster = Cluster(['172.17.0.2'])
 
 def init_app(app):
-    app.teardown_appcontext(close_db)
     app.cli.add_command(init_data_cmd)
     app.cli.add_command(init_db_cmd)
     app.cli.add_command(reset_db_cmd)
@@ -15,10 +14,6 @@ def init_app(app):
 
 def get_db(service):
     return cluster.connect('blog')
-
-
-def close_db(service, e=None):
-    pass
 
 
 def init_db():

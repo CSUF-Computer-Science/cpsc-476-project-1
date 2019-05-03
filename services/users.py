@@ -75,13 +75,11 @@ def register_user():
           db = database.get_db(SERVICE_NAME)
           for row in db.execute('SELECT username FROM users WHERE username=(?);', [username,]):
                if row != None:
-                    database.close_db(SERVICE_NAME)
                     message = jsonify({'error':'HTTP 409 Conflict'})
                     message.status_code = 409
                     return message
           db.execute('INSERT INTO users(username, password, full_name) VALUES (?,?,?);', [username, hashed, full_name])
           db.commit()
-          database.close_db(SERVICE_NAME)
           message = jsonify({'success':'username has been registered'})
           message.status_code = 200
           return message
@@ -98,14 +96,12 @@ def delete_user():
                if row != None:
                     db.execute('DELETE FROM users WHERE username=(?);', [username])
                     db.commit()
-                    database.close_db(SERVICE_NAME)
                     message = jsonify({'success':'user exists'})
                     message.status_code = 200
                     return message
                else:
                     message = jsonify({'error':'user doesnt exist'})
                     message.status_code = 401
-                    database.close_db(SERVICE_NAME)
                     return message
 
 @app.route('/user/changepw', methods=['POST'])
@@ -121,11 +117,9 @@ def change_password():
                if row != None:
                     db.execute("UPDATE users SET password=(?) WHERE username=(?) AND password=(?);", [newhashed, username, hashed])
                     db.commit()
-                    database.close_db(SERVICE_NAME)
                     message = jsonify({"success":"password updated"})
                     message.status_code=200
                     return message
-               db.close_db(SERVICE_NAME)
                message = jsonify({"error":"could not change password"})
                message.status_code=404
                return message

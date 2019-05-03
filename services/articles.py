@@ -41,7 +41,6 @@ def new_article():
         for row in db.execute("SELECT id FROM articles WHERE title=(?) AND author=(?) ORDER BY id DESC;", [request.get_json()['title'], username]):
             if row != None:
                 db.commit()
-                database.close_db(SERVICE_NAME)
                 message = jsonify({
                     "url" : "/articles/"+str(row[0]),
                     "id": row[0]
@@ -59,7 +58,6 @@ def find_article(article_id):
         for row in db.execute("SELECT title, content, author, posted FROM articles where id=(?)", [article_id,]):
             if row != None:
                 db.commit()
-                database.close_db(SERVICE_NAME)
                 message = jsonify({
                     "title" : row[0],
                     "content" : row[1],
@@ -68,7 +66,6 @@ def find_article(article_id):
                 })
                 message.status_code = 200
                 return message
-        database.close_db(SERVICE_NAME)
         message = jsonify({"error":"the article you are looking for is not here"})
         message.status_code = 404
         return message
@@ -84,11 +81,9 @@ def delete_article(article_id):
             if row != None:
                 db.execute("DELETE FROM articles WHERE id=(?) AND author=(?)", [article_id, username])
                 db.commit()
-                database.close_db(SERVICE_NAME)
                 message = jsonify({"success":"article deleted"})
                 message.status_code=200
                 return message
-        database.close_db(SERVICE_NAME)
         message = jsonify({"error":"no such article exists"})
         message.status_code=404
         return message
@@ -105,7 +100,6 @@ def edit_article(article_id):
             if row != None:
                 db.execute("UPDATE articles SET content=(?), posted=CURRENT_TIMESTAMP WHERE id=(?) AND author=(?);", [request.get_json()['content'], article_id, username])
                 db.commit()
-                database.close_db(SERVICE_NAME)
                 message = jsonify({"success":"content updated"})
                 message.status_code=200
                 return message
