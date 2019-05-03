@@ -6,6 +6,13 @@ from cassandra.cluster import Cluster, NoHostAvailable
 
 cluster = Cluster(['172.17.0.2'])
 
+def executescript(session, file):
+    content = file.readlines()
+    for line in content:
+        session.execute(line.decode('utf-8').strip())
+        print("Ran: {}".format(line.decode('utf-8').strip()))
+
+
 def init_app(app):
     app.cli.add_command(init_data_cmd)
     app.cli.add_command(init_db_cmd)
@@ -19,10 +26,7 @@ def get_db(service):
 def init_db():
     db = cluster.connect()
     with current_app.open_resource(f'data/schemas/blog.cql') as f:
-        content = f.readlines()
-        for line in content:
-            print("Ran: ", line.decode('utf-8'))
-            db.execute(line.decode('utf-8'))
+        executescript(db, f)
     click.echo(f"Initialized database for blog")
 
 
@@ -43,13 +47,6 @@ def init_db_cmd(service):
 def reset_db_cmd(service):
     reset_db(service)
     init_db()
-
-
-def executescript(session, file):
-    content = file.readlines()
-    for line in content:
-        session.execute(line.decode('utf-8').strip())
-        print("Ran: {}".format(line.decode('utf-8').strip()))
 
 def init_service_data(service):
     with current_app.app_context():

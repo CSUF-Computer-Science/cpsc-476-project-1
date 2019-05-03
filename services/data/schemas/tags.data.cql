@@ -1,0 +1,12 @@
+INSERT INTO tags (article, name) VALUES (1, 'blessed');
+INSERT INTO tags (article, name) VALUES (1, 'stayblessed');
+INSERT INTO tags (article, name) VALUES (2, 'tacocat');
+INSERT INTO tags (article, name) VALUES (2, 'fakelions');
+INSERT INTO tags (article, name) VALUES (3, 'pollythebird');
+INSERT INTO tags (article, name) VALUES (4, 'dinosaurcosplay');
+INSERT INTO tags (article, name) VALUES (5, 'bestfriend');
+INSERT INTO tags (article, name) VALUES (6, 'easter');
+INSERT INTO tags (article, name) VALUES (7, 'TIL');
+INSERT INTO tags (article, name) VALUES (8, 'datadatadata');
+INSERT INTO tags (article, name) VALUES (11, 'tipoftheday');
+INSERT INTO tags (article, name) VALUES (10, 'stringy');
