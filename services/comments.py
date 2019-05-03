@@ -65,27 +65,30 @@ def comments(id):
         content = request.get_json()
         comment_id = content.get('CommentId', None)
         if comment_id == None:
-            resp = jsonify({"error": "Error: Missing Arguments. Please specify TagName(s) to add."})
+            resp = jsonify({"error": "Error: Missing Arguments. Please specify CommentId to delete."})
             resp.status_code = 400
             return resp
         else:
             try:
-                mydb.execute(mydb.prepare('DELETE FROM comments WHERE id=?'), [comment_id])
+                mydb.execute(mydb.prepare('DELETE FROM comments WHERE article=? AND id=?'), [uuid.UUID(id), uuid.UUID(comment_id)])
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
-            mydb.commit()
             try: 
-                comments = mydb.execute(mydb.prepare("SELECT * FROM comments WHERE article=? ORDER BY posted DESC"), [id])
+                comments = mydb.execute(mydb.prepare("SELECT id, author, content, article, posted  FROM comments WHERE article=? ORDER BY id DESC"), [uuid.UUID(id)])
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
             article_id = "/article/"+id
             results = {'article_id': article_id,
                        'comments': []}
-            for c in comments:
+            for row in comments:
                 results['comments'].append({
-
+                    "id": row[0],
+                    "author": row[1],
+                    "content": row[2],
+                    "article": row[3],
+                    "posted": row[4],
                 })
             resp = jsonify(results)
             resp.status_code = 200
@@ -111,13 +114,12 @@ def post_comment(id):
         return resp 
     else:
         try:
-            mydb.execute(mydb.prepare('INSERT INTO comments(author, content, article) VALUES (?,?,?)'), [user, body, uuid.UUID(id)])
+            mydb.execute(mydb.prepare('INSERT INTO comments(id, posted, author, content, article) VALUES (now(), toTimestamp(now()), ?,?,?)'), [user, body, uuid.UUID(id)])
         except:
             e=sys.exc_info()[0]
             return conflict(e)
-        mydb.commit()
         try:
-            comments = mydb.execute(mydb.prepare("SELECT id,author,content,posted FROM comments WHERE article=? ORDER BY posted DESC"), [uuid.UUID(id)])
+            comments = mydb.execute(mydb.prepare("SELECT id,author,content,posted FROM comments WHERE article=? ORDER BY id DESC"), [uuid.UUID(id)])
         except:
             e=sys.exc_info()[0]
             return conflict(e)
@@ -144,7 +146,7 @@ def post_comment(id):
 def getComments(id, number):
     mydb = db.get_db(SERVICE_NAME)
     try:
-        results = mydb.execute("SELECT id, author, content, article, posted FROM comments WHERE article=%s LIMIT %s", (uuid.UUID(id), int(number)))
+        results = mydb.execute("SELECT id, author, content, article, posted FROM comments WHERE article=%s ORDER BY id DESC LIMIT %s", (uuid.UUID(id), int(number)))
     except:
         e=sys.exc_info()[0]
         return conflict(e)
