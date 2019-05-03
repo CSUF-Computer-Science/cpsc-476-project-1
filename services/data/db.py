@@ -32,10 +32,8 @@ def init_db():
 
 
 def reset_db(service):
-    if os.path.isfile(f"{service}.db"):
-        os.remove(f"{service}.db")
-    click.echo(f"Removed database for {service}")
-    init_db(service)
+    db = cluster.connect()
+    db.execute('DROP KEYSPACE blog;')
 
 
 @click.command('init-db')
@@ -52,12 +50,17 @@ def reset_db_cmd(service):
     init_db(service)
 
 
+def executescript(session, file):
+    content = file.readlines()
+    for line in content:
+        session.execute(line.decode('utf-8'))
+        print("Ran: {}".format(line.decode('utf-8')))
+
 def init_service_data(service):
     with current_app.app_context():
         db = get_db(service)
-    with current_app.open_resource(f'data/schemas/{service}.data.sql') as f:
-        content = f.read().decode()
-        db.executescript(content)
+    with current_app.open_resource(f'data/schemas/{service}.data.cql') as f:
+        executescript(db, f)
     db.commit()
     click.echo(f"Initialized data for {service}")
 
