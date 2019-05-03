@@ -1,0 +1,13 @@
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), '1testuser', 1, 'that''s super cool');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), '1sykkid', 2, 'I don''t believe you''re right at all');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), '1thebettermario', 2, 'very brave');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), '1ucccoffee', 3, 'drink more coffee its good for you');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), '1prezpretzel', 3, 'tea, greater than coffee');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), '1sk8erboi', 4, 'that''s my favorite animal too');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), '1ringleader', 4, 'they are so cute');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), '1pohtaytoe', 5, 'a true best friend');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), '1elmerfudd', 6, 'my favorite too');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), '1goodscholar', 7, 'i feel like i learned a lot!');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), '1smartcookie', 8, 'good to know');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), '1freshwater', 9, 'everyone knows that!');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), '1pohtaytoe', 10, 'who thought of that');
