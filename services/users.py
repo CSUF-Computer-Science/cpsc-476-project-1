@@ -73,13 +73,12 @@ def register_user():
           hashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(request.get_json()['password'].encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe').decode('utf-8')
           full_name = request.get_json()['full_name']
           db = database.get_db(SERVICE_NAME)
-          for row in db.execute('SELECT username FROM users WHERE username=(?);', [username,]):
+          for row in db.execute(db.prepare('SELECT username FROM users WHERE username=?;'), [username]):
                if row != None:
                     message = jsonify({'error':'HTTP 409 Conflict'})
                     message.status_code = 409
                     return message
-          db.execute('INSERT INTO users(username, password, full_name) VALUES (?,?,?);', [username, hashed, full_name])
-          db.commit()
+          db.execute(db.prepare('INSERT INTO users(username, password, full_name) VALUES (?,?,?);'), [username, hashed, full_name])
           message = jsonify({'success':'username has been registered'})
           message.status_code = 200
           return message
@@ -92,11 +91,10 @@ def delete_user():
           user = request.headers['Authorization'].strip().split(' ')
           username, password = base64.b64decode(user[1]).decode().split(':', 1)
           db = database.get_db(SERVICE_NAME)
-          for row in db.execute('SELECT username FROM users WHERE username=(?);', [username,]):
+          for row in db.execute(db.prepare('SELECT username FROM users WHERE username=?;'), [username]):
                if row != None:
-                    db.execute('DELETE FROM users WHERE username=(?);', [username])
-                    db.commit()
-                    message = jsonify({'success':'user exists'})
+                    db.execute(db.prepare('DELETE FROM users WHERE username=?;'), [username])
+                    message = jsonify({'success':'user deleted'})
                     message.status_code = 200
                     return message
                else:
@@ -113,10 +111,9 @@ def change_password():
           hashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(password.encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe').decode('utf-8')
           newhashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(request.get_json()['password'].encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe').decode('utf-8')
           db = database.get_db(SERVICE_NAME)
-          for row in db.execute("SELECT username FROM users WHERE username=(?) AND password=(?);", [username, hashed]):
+          for row in db.execute(db.prepare("SELECT username FROM users WHERE username=?;"), [username]):
                if row != None:
-                    db.execute("UPDATE users SET password=(?) WHERE username=(?) AND password=(?);", [newhashed, username, hashed])
-                    db.commit()
+                    db.execute(db.prepare("UPDATE users SET password=? WHERE username=?;"), [newhashed, username])
                     message = jsonify({"success":"password updated"})
                     message.status_code=200
                     return message

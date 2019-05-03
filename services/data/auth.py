@@ -9,7 +9,7 @@ class GetAuth(BasicAuth):
 
         hashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(password.encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe').decode('utf-8')
         db = database.get_db('users')
-        results = db.execute('SELECT password FROM users WHERE username=(?);', [username]).fetchall()
+        results = list(db.execute(db.prepare('SELECT password FROM users WHERE username=?;'), [username]))
         if len(results) > 0:
             dbPass = results[0][0]
 
@@ -40,7 +40,7 @@ class AllowAnonymousAuth(BasicAuth):
 
         hashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(password.encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe').decode('utf-8')
         db = database.get_db('users')
-        results = db.execute('SELECT password FROM users WHERE username=(?);', [username]).fetchall()
+        results = list(db.execute(db.prepare('SELECT password FROM users WHERE username=?;'), [username]))
         if len(results) > 0:
             dbPass = results[0][0]
 
