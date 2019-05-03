@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, uuid, cassandra
 from flask import Flask, jsonify, request
 from .data import db, auth
 
@@ -14,7 +14,7 @@ db.init_app(app)
 def not_found(error=None):
     message = {
         'status': 404,
-        'message': 'Not Found: ' + request.headers['X-Original-URI'],
+        'message': 'Not Found: ' + request.headers.get('X-Original-URI', ''),
     }
     resp = jsonify(message)
     resp.status_code = 404
@@ -24,7 +24,7 @@ def not_found(error=None):
 def conflict(error=None):
     message = {
         'status': 409,
-        'message': 'Error: Conflict at ' + request.headers['X-Original-URI'] +' Code '+ str(error)
+        'message': 'Error: Conflict at ' + request.get('X-Original-URI', '') +' Code '+ str(error)
     }
     resp = jsonify(message)
     resp.status_code = 409
@@ -35,9 +35,18 @@ def comments(id):
     #get number of comments connected to an article
     if request.method == 'GET':
         mydb = db.get_db(SERVICE_NAME)
+        
+        try:
+            uuid.UUID(id)
+        except:
+            resp = jsonify({
+                'error': 'invalid UUID provided'
+            })
+            resp.status_code = 400
+            return resp
+
         try: 
-            results = mydb.execute(
-                "SELECT COUNT(*) FROM comments WHERE article=?", [id]).fetchall()
+            results = mydb.execute(mydb.prepare("SELECT COUNT(*) FROM comments WHERE article=?"), [uuid.UUID(id)])
         except:
             e=sys.exc_info()[0]
             return conflict(e)
@@ -61,7 +70,7 @@ def comments(id):
             return resp
         else:
             try:
-                mydb.execute('DELETE FROM comments WHERE id=? AND article=?', [comment_id, id])
+                mydb.execute('DELETE FROM comments WHERE id=?', [comment_id])
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
