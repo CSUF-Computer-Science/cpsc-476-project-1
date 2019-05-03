@@ -14,7 +14,7 @@ db.init_app(app)
 def not_found(error=None):
     message = {
         'status': 404,
-        'message': 'Not Found: ' + request.headers.get('X-Original-URI', ''),
+        'message': 'Not Found: ' + request.headers.get('X-Original-URI', request.path),
     }
     resp = jsonify(message)
     resp.status_code = 404
@@ -24,7 +24,7 @@ def not_found(error=None):
 def conflict(error=None):
     message = {
         'status': 409,
-        'message': 'Error: Conflict at ' + request.get('X-Original-URI', '') +' Code '+ str(error)
+        'message': 'Error: Conflict at ' + request.get('X-Original-URI', request.path) +' Code '+ str(error)
     }
     resp = jsonify(message)
     resp.status_code = 409
@@ -70,14 +70,13 @@ def comments(id):
             return resp
         else:
             try:
-                mydb.execute('DELETE FROM comments WHERE id=?', [comment_id])
+                mydb.execute(mydb.prepare('DELETE FROM comments WHERE id=?'), [comment_id])
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
             mydb.commit()
             try: 
-                comments = mydb.execute(
-                    "SELECT * FROM comments WHERE article=? ORDER BY posted DESC", [id]).fetchall()
+                comments = mydb.execute(mydb.prepare("SELECT * FROM comments WHERE article=? ORDER BY posted DESC"), [id])
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
@@ -112,15 +111,13 @@ def post_comment(id):
         return resp 
     else:
         try:
-            mydb.execute(
-                'INSERT INTO comments(author, content, article) VALUES (?,?,?)', [user, body, id])
+            mydb.execute(mydb.prepare('INSERT INTO comments(author, content, article) VALUES (?,?,?)'), [user, body, uuid.UUID(id)])
         except:
             e=sys.exc_info()[0]
             return conflict(e)
         mydb.commit()
         try:
-            comments = mydb.execute(
-                "SELECT id,author,content,posted FROM comments WHERE article=? ORDER BY posted DESC", [id]).fetchall()
+            comments = mydb.execute(mydb.prepare("SELECT id,author,content,posted FROM comments WHERE article=? ORDER BY posted DESC"), [uuid.UUID(id)])
         except:
             e=sys.exc_info()[0]
             return conflict(e)
@@ -147,12 +144,12 @@ def post_comment(id):
 def getComments(id, number):
     mydb = db.get_db(SERVICE_NAME)
     try:
-        results = mydb.execute(
-            "SELECT * FROM (SELECT id,author,content,article,posted FROM comments WHERE article=? ORDER BY posted DESC) LIMIT ?", [id, number]).fetchall()
+        results = mydb.execute("SELECT id, author, content, article, posted FROM comments WHERE article=%s LIMIT %s", (uuid.UUID(id), int(number)))
     except:
         e=sys.exc_info()[0]
         return conflict(e)
 
+    results = list(results)
     if len(results) > 0:
         out = {
             "count": len(results),
