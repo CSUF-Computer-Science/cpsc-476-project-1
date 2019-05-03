@@ -47,21 +47,20 @@ def init_db_cmd(service):
 @with_appcontext
 def reset_db_cmd(service):
     reset_db(service)
-    init_db(service)
+    init_db()
 
 
 def executescript(session, file):
     content = file.readlines()
     for line in content:
-        session.execute(line.decode('utf-8'))
-        print("Ran: {}".format(line.decode('utf-8')))
+        session.execute(line.decode('utf-8').strip())
+        print("Ran: {}".format(line.decode('utf-8').strip()))
 
 def init_service_data(service):
     with current_app.app_context():
         db = get_db(service)
     with current_app.open_resource(f'data/schemas/{service}.data.cql') as f:
         executescript(db, f)
-    db.commit()
     click.echo(f"Initialized data for {service}")
 
 
