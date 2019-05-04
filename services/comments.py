@@ -133,7 +133,7 @@ def post_comment(id):
         
 
 #get n most recent article comments.
-@app.route('/comments/<number>/article/<uuid:id>', methods=['GET'])
+@app.route('/comments/<int:number>/article/<uuid:id>', methods=['GET'])
 def getComments(id, number):
     mydb = db.get_db(SERVICE_NAME)
     try:
