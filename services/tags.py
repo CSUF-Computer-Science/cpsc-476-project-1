@@ -23,7 +23,7 @@ def not_found(error=None):
 def conflict(error=None):
     message = {
         'status': 409,
-        'message': 'Error: Conflict at ' + request.headers.get('X-Original-URI', request.path) +' Code '+ str(error)
+        'message': 'Error: Conflict at ' + request.headers.get('X-Original-URI', request.path) +' Code '+ str(error) + error.message
     }
     resp = jsonify(message)
     resp.status_code = 409
@@ -34,8 +34,8 @@ def conflict(error=None):
 def getArticles(name):
     mydb = db.get_db(SERVICE_NAME)
     try:
-        results = mydb.execute(
-            "SELECT article FROM tags WHERE name=?", [name]).fetchall()
+        results = list(mydb.execute("SELECT article,name FROM tags"))
+        results = list(filter(lambda row: row[1] == name, results))
     except:
             e=sys.exc_info()[0]
             return conflict(e)        
@@ -50,7 +50,7 @@ def getArticles(name):
     else:
         return not_found()
 
-@app.route('/tags/article/<id>', methods = ['POST', 'DELETE'])
+@app.route('/tags/article/<uuid:id>', methods = ['POST', 'DELETE'])
 def tags(id):
 
     if request.method == 'POST':
@@ -64,18 +64,16 @@ def tags(id):
         else:
             for t in tagnames[0]:
                 try:
-                    mydb.execute('INSERT INTO tags(name, article) VALUES (?,?)', [t, id])
-                    mydb.commit()
+                    mydb.execute(mydb.prepare('INSERT INTO tags(name, article) VALUES (?,?)'), [t, id])
                 except:
                     e=sys.exc_info()[0]
                     return conflict(e)
             try:
-                tags = mydb.execute(
-                    "SELECT name FROM tags WHERE article=?", [id]).fetchall()
+                tags = list(mydb.execute(mydb.prepare("SELECT name FROM tags WHERE article=?;"), [id]))
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)    
-            article_id = "/article/"+id
+            article_id = "/article/"+str(id)
             location = article_id + "/tags/"
             results = {'article_id': article_id,
                        'tags': []}
@@ -97,18 +95,16 @@ def tags(id):
         else:
             for t in tagnames[0]:
                 try:
-                    mydb.execute('DELETE FROM tags WHERE name=? AND article=?', [t, id])
+                    mydb.execute(mydb.prepare('DELETE FROM tags WHERE article=? AND name=?'), [id, t])
                 except:
                     e=sys.exc_info()[0]
                     return conflict(e)
-                mydb.commit()
             try:
-                tags = mydb.execute(
-                    "SELECT name FROM tags WHERE article=?", [id]).fetchall()
+                tags = list(mydb.execute(mydb.prepare("SELECT name FROM tags WHERE article=?"), [id]))
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
-            article_id = "/article/"+id
+            article_id = "/article/"+str(id)
             results = {'article_id': article_id,
                        'tags': []}
             for t in tags:
@@ -121,14 +117,13 @@ def tags(id):
                     'status':405})
         return resp
 
-@app.route('/tags/all/article/<id>', methods = ['GET'])
+@app.route('/tags/all/article/<uuid:id>', methods = ['GET'])
 def getTags(id):
         #get all tags connected to an article
     if request.method == 'GET':
         mydb = db.get_db(SERVICE_NAME)
         try:
-            results = mydb.execute(
-                "SELECT name FROM tags WHERE article=?", [id]).fetchall()
+            results = list(mydb.execute(mydb.prepare("SELECT name FROM tags WHERE article=?"), [id]))
         except:
             e=sys.exc_info()[0]
             return conflict(e)
