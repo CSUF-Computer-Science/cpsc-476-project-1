@@ -49,6 +49,11 @@ server {
 		proxy_pass http://user;
 		proxy_set_header X-Original-URI $request_uri;
 	}
+
+	location /rss {
+		proxy_pass http://rss;
+		proxy_set_header X-Original-URI $request_uri;
+	}
 }
 
 upstream article {
@@ -73,4 +78,10 @@ upstream user {
 	server localhost:5300;
 	server localhost:5301;
 	server localhost:5302;
+}
+
+upstream rss {
+	server localhost:5400;
+	server localhost:5401;
+	server localhost:5402;
 }

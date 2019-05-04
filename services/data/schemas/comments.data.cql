@@ -1,0 +1,13 @@
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), 'testuser', 7b64e820-6df0-11e9-b6c5-000000000000, 'that''s super cool');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), 'sykkid', 7b64e822-6df0-11e9-b6c5-000000000000, 'I don''t believe you''re right at all');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), 'thebettermario', 7b64e822-6df0-11e9-b6c5-000000000000, 'very brave');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), 'ucccoffee', 7b650f30-6df0-11e9-b6c5-000000000000, 'drink more coffee its good for you');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), 'prezpretzel', 7b650f30-6df0-11e9-b6c5-000000000000, 'tea, greater than coffee');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), 'sk8erboi', 7b650f32-6df0-11e9-b6c5-000000000000, 'that''s my favorite animal too');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), 'ringleader', 7b650f32-6df0-11e9-b6c5-000000000000, 'they are so cute');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), 'pohtaytoe', 7b650f34-6df0-11e9-b6c5-000000000000, 'a true best friend');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), 'elmerfudd', 7b653640-6df0-11e9-b6c5-000000000000, 'my favorite too');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), 'goodscholar', 7b653642-6df0-11e9-b6c5-000000000000, 'i feel like i learned a lot!');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), 'smartcookie', 7b653642-6df0-11e9-b6c5-000000000000, 'good to know');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), 'freshwater', 7b655d53-6df0-11e9-b6c5-000000000000, 'everyone knows that!');
+INSERT INTO comments ("id", "posted", "author", "article", "content") VALUES (now(), toTimestamp(now()), 'pohtaytoe', 7b658460-6df0-11e9-b6c5-000000000000, 'who thought of that');

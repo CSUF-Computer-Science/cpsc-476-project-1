@@ -1,0 +1,12 @@
+INSERT INTO tags (article, name) VALUES (7b64e820-6df0-11e9-b6c5-000000000000, 'blessed');
+INSERT INTO tags (article, name) VALUES (7b64e820-6df0-11e9-b6c5-000000000000, 'stayblessed');
+INSERT INTO tags (article, name) VALUES (7b64e822-6df0-11e9-b6c5-000000000000, 'tacocat');
+INSERT INTO tags (article, name) VALUES (7b64e822-6df0-11e9-b6c5-000000000000, 'fakelions');
+INSERT INTO tags (article, name) VALUES (7b650f30-6df0-11e9-b6c5-000000000000, 'pollythebird');
+INSERT INTO tags (article, name) VALUES (7b650f32-6df0-11e9-b6c5-000000000000, 'dinosaurcosplay');
+INSERT INTO tags (article, name) VALUES (7b650f34-6df0-11e9-b6c5-000000000000, 'bestfriend');
+INSERT INTO tags (article, name) VALUES (7b653640-6df0-11e9-b6c5-000000000000, 'easter');
+INSERT INTO tags (article, name) VALUES (7b653642-6df0-11e9-b6c5-000000000000, 'TIL');
+INSERT INTO tags (article, name) VALUES (7b653642-6df0-11e9-b6c5-000000000000, 'datadatadata');
+INSERT INTO tags (article, name) VALUES (7b658462-6df0-11e9-b6c5-000000000000, 'tipoftheday');
+INSERT INTO tags (article, name) VALUES (7b658460-6df0-11e9-b6c5-000000000000, 'stringy');

@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, uuid, cassandra
 from flask import Flask, jsonify, request
 from .data import db, auth
 
@@ -14,7 +14,7 @@ db.init_app(app)
 def not_found(error=None):
     message = {
         'status': 404,
-        'message': 'Not Found: ' + request.headers['X-Original-URI'],
+        'message': 'Not Found: ' + request.headers.get('X-Original-URI', request.path),
     }
     resp = jsonify(message)
     resp.status_code = 404
@@ -24,20 +24,20 @@ def not_found(error=None):
 def conflict(error=None):
     message = {
         'status': 409,
-        'message': 'Error: Conflict at ' + request.headers['X-Original-URI'] +' Code '+ str(error)
+        'message': 'Error: Conflict at ' + request.get('X-Original-URI', request.path) +' Code '+ str(error)
     }
     resp = jsonify(message)
     resp.status_code = 409
     return resp
 
-@app.route('/comments/article/<id>', methods = ['GET', 'DELETE'])
+@app.route('/comments/article/<uuid:id>', methods = ['GET', 'DELETE'])
 def comments(id):
     #get number of comments connected to an article
     if request.method == 'GET':
         mydb = db.get_db(SERVICE_NAME)
+
         try: 
-            results = mydb.execute(
-                "SELECT COUNT(*) FROM comments WHERE article=?", [id]).fetchall()
+            results = mydb.execute(mydb.prepare("SELECT COUNT(*) FROM comments WHERE article=?"), [id])
         except:
             e=sys.exc_info()[0]
             return conflict(e)
@@ -46,10 +46,8 @@ def comments(id):
                 "count": results[0][0]
             })
             resp.status_code = 200
-            db.close_db(SERVICE_NAME)
             return resp
         else:
-            db.close_db(SERVICE_NAME)
             return not_found()
             
     #remove a comment on an article
@@ -58,29 +56,30 @@ def comments(id):
         content = request.get_json()
         comment_id = content.get('CommentId', None)
         if comment_id == None:
-            resp = jsonify({"error": "Error: Missing Arguments. Please specify TagName(s) to add."})
+            resp = jsonify({"error": "Error: Missing Arguments. Please specify CommentId to delete."})
             resp.status_code = 400
             return resp
         else:
             try:
-                mydb.execute('DELETE FROM comments WHERE id=? AND article=?', [comment_id, id])
+                mydb.execute(mydb.prepare('DELETE FROM comments WHERE article=? AND id=? AND author=?'), [id, uuid.UUID(comment_id), auth.getUser()])
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
-            mydb.commit()
             try: 
-                comments = mydb.execute(
-                    "SELECT * FROM comments WHERE article=? ORDER BY posted DESC", [id]).fetchall()
+                comments = mydb.execute(mydb.prepare("SELECT id, author, content, article, posted  FROM comments WHERE article=? ORDER BY id DESC"), [id])
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
-            db.close_db(SERVICE_NAME)
-            article_id = "/article/"+id
+            article_id = "/article/"+str(id)
             results = {'article_id': article_id,
                        'comments': []}
-            for c in comments:
+            for row in comments:
                 results['comments'].append({
-
+                    "id": row[0],
+                    "author": row[1],
+                    "content": row[2],
+                    "article": row[3],
+                    "posted": row[4],
                 })
             resp = jsonify(results)
             resp.status_code = 200
@@ -93,7 +92,7 @@ def comments(id):
 
         
 #post comment to an article
-@app.route('/comments/new/article/<id>', methods = ['POST'])
+@app.route('/comments/new/article/<uuid:id>', methods = ['POST'])
 def post_comment(id):
     mydb = db.get_db(SERVICE_NAME)
     content = request.get_json()
@@ -106,20 +105,16 @@ def post_comment(id):
         return resp 
     else:
         try:
-            mydb.execute(
-                'INSERT INTO comments(author, content, article) VALUES (?,?,?)', [user, body, id])
+            mydb.execute(mydb.prepare('INSERT INTO comments(id, posted, author, content, article) VALUES (now(), toTimestamp(now()), ?,?,?)'), [user, body, id])
         except:
             e=sys.exc_info()[0]
             return conflict(e)
-        mydb.commit()
         try:
-            comments = mydb.execute(
-                "SELECT id,author,content,posted FROM comments WHERE article=? ORDER BY posted DESC", [id]).fetchall()
+            comments = mydb.execute(mydb.prepare("SELECT id,author,content,posted FROM comments WHERE article=? ORDER BY id DESC"), [id])
         except:
             e=sys.exc_info()[0]
             return conflict(e)
-        db.close_db(SERVICE_NAME)
-        article_id = "/article/"+ id
+        article_id = "/article/"+ str(id)
         location = article_id + "/comments/"
         results = {'article_id': article_id,
                     'comments': []}
@@ -138,16 +133,16 @@ def post_comment(id):
         
 
 #get n most recent article comments.
-@app.route('/comments/<number>/article/<id>', methods=['GET'])
+@app.route('/comments/<int:number>/article/<uuid:id>', methods=['GET'])
 def getComments(id, number):
     mydb = db.get_db(SERVICE_NAME)
     try:
-        results = mydb.execute(
-            "SELECT * FROM (SELECT id,author,content,article,posted FROM comments WHERE article=? ORDER BY posted DESC) LIMIT ?", [id, number]).fetchall()
+        results = mydb.execute("SELECT id, author, content, article, posted FROM comments WHERE article=%s ORDER BY id DESC LIMIT %s", (id, int(number)))
     except:
         e=sys.exc_info()[0]
         return conflict(e)
 
+    results = list(results)
     if len(results) > 0:
         out = {
             "count": len(results),
@@ -163,9 +158,7 @@ def getComments(id, number):
             })
         resp = jsonify(out)
         resp.status_code = 200
-        db.close_db(SERVICE_NAME)
         return resp
     else:
-        db.close_db(SERVICE_NAME)
         return not_found()
 

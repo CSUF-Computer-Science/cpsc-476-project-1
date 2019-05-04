@@ -34,7 +34,7 @@ def authReq(originalURI):
 
 @app.route('/auth')
 def authorize():
-     authType = authReq(request.headers['X-Original-URI'])
+     authType = authReq(request.headers.get('X-Original-URI', request.path))
 
      if authType and not authType.authenticate():
           resp=jsonify({'status': 'Unauthorized user'})
@@ -50,7 +50,7 @@ def authorize():
 def not_found(error=None):
     message = {
         'status': 404,
-        'message': 'Not Found: ' + request.url,
+        'message': 'Not Found: ' + request.headers.get('X-Original-URI', request.path),
     }
     resp = jsonify(message)
     resp.status_code = 404
@@ -60,7 +60,7 @@ def not_found(error=None):
 def conflict(error=None):
     message = {
         'status': 409,
-        'message': 'Error: Conflict at ' + request.url +' Code '+ error.message
+        'message': 'Error: Conflict at ' + request.headers.get('X-Original-URI', request.path) +' Code '+ error.message
     }
     resp = jsonify(message)
     resp.status_code = 409
@@ -73,15 +73,12 @@ def register_user():
           hashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(request.get_json()['password'].encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe').decode('utf-8')
           full_name = request.get_json()['full_name']
           db = database.get_db(SERVICE_NAME)
-          for row in db.execute('SELECT username FROM users WHERE username=(?);', [username,]):
+          for row in db.execute(db.prepare('SELECT username FROM users WHERE username=?;'), [username]):
                if row != None:
-                    database.close_db(SERVICE_NAME)
                     message = jsonify({'error':'HTTP 409 Conflict'})
                     message.status_code = 409
                     return message
-          db.execute('INSERT INTO users(username, password, full_name) VALUES (?,?,?);', [username, hashed, full_name])
-          db.commit()
-          database.close_db(SERVICE_NAME)
+          db.execute(db.prepare('INSERT INTO users(username, password, full_name) VALUES (?,?,?);'), [username, hashed, full_name])
           message = jsonify({'success':'username has been registered'})
           message.status_code = 200
           return message
@@ -94,18 +91,15 @@ def delete_user():
           user = request.headers['Authorization'].strip().split(' ')
           username, password = base64.b64decode(user[1]).decode().split(':', 1)
           db = database.get_db(SERVICE_NAME)
-          for row in db.execute('SELECT username FROM users WHERE username=(?);', [username,]):
+          for row in db.execute(db.prepare('SELECT username FROM users WHERE username=?;'), [username]):
                if row != None:
-                    db.execute('DELETE FROM users WHERE username=(?);', [username])
-                    db.commit()
-                    database.close_db(SERVICE_NAME)
-                    message = jsonify({'success':'user exists'})
+                    db.execute(db.prepare('DELETE FROM users WHERE username=?;'), [username])
+                    message = jsonify({'success':'user deleted'})
                     message.status_code = 200
                     return message
                else:
                     message = jsonify({'error':'user doesnt exist'})
                     message.status_code = 401
-                    database.close_db(SERVICE_NAME)
                     return message
 
 @app.route('/user/changepw', methods=['POST'])
@@ -117,15 +111,12 @@ def change_password():
           hashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(password.encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe').decode('utf-8')
           newhashed = bcrypt.hashpw(base64.b64encode(hashlib.sha256(request.get_json()['password'].encode('utf-8')).digest()), b'$2b$12$DbmIZ/a5LByoJHgFItyZCe').decode('utf-8')
           db = database.get_db(SERVICE_NAME)
-          for row in db.execute("SELECT username FROM users WHERE username=(?) AND password=(?);", [username, hashed]):
+          for row in db.execute(db.prepare("SELECT username FROM users WHERE username=?;"), [username]):
                if row != None:
-                    db.execute("UPDATE users SET password=(?) WHERE username=(?) AND password=(?);", [newhashed, username, hashed])
-                    db.commit()
-                    database.close_db(SERVICE_NAME)
+                    db.execute(db.prepare("UPDATE users SET password=? WHERE username=?;"), [newhashed, username])
                     message = jsonify({"success":"password updated"})
                     message.status_code=200
                     return message
-               db.close_db(SERVICE_NAME)
                message = jsonify({"error":"could not change password"})
                message.status_code=404
                return message

@@ -18,7 +18,7 @@ def latest_articles():
                     Item(
                         title = article['title'],
                         author= article['author'],
-                        pubDate= datetime.datetime.strptime(article['posted'], "%Y-%m-%d %H:%M:%S.%f"),
+                        pubDate= datetime.datetime.strptime(article['posted'], "%a, %d %b %Y %H:%M:%S %Z"),
                         link = article['url'],
                     )
                 )
@@ -43,7 +43,7 @@ def feed_articles():
                 articleItem = Item(
                     title = article['title'],
                     link = f'https://localhost/article/{article_id}',
-                    pubDate = datetime.datetime.strptime(article['posted'], "%Y-%m-%d %H:%M:%S.%f")
+                    pubDate = datetime.datetime.strptime(article['posted'], "%a, %d %b %Y %H:%M:%S %Z")
                     )
                 response = requests.get(f'http://localhost/article/{article_id}')
                 if response.status_code == requests.codes.ok:
@@ -77,14 +77,14 @@ def comment_articles():
             articles = response.json()['success']
             for article in articles:
                 article_id = article['url'].split('/')[-1]
-                response = requests.get(f'http://localhost/article/{article_id}/comments/100')
+                response = requests.get(f'http://localhost/comments/100/article/{article_id}')
                 if response.status_code == requests.codes.ok:
                     comments = response.json()['comments']
                     for comment in comments:
                         commentItem = Item(
                             title = comment['author'],
                             description = comment['content'],
-                            pubDate = datetime.datetime.strptime(comment['posted'], "%Y-%m-%d %H:%M:%S.%f"),
+                            pubDate = datetime.datetime.strptime(comment['posted'], "%a, %d %b %Y %H:%M:%S %Z"),
                             link = f'http://localhost/article/{article_id}'
                         )
                         comment_collection.append(commentItem)

@@ -3,7 +3,7 @@ test_name: Test comments lifecycle
 stages:
   - name: Post an anonymous comment
     request:
-      url: http://localhost/comments/new/article/1
+      url: http://localhost/comments/new/article/7b64e820-6df0-11e9-b6c5-000000000000
       json:
         text: this is a test comment
       method: POST
@@ -14,19 +14,19 @@ stages:
       headers:
         content-type: application/json
       body:
-        article_id: /article/1
+        article_id: /article/7b64e820-6df0-11e9-b6c5-000000000000
         comments:
-          - id: 14
+          - id: !anything
             author: Anonymous Coward
             content: this is a test comment
             posted: !anything
-          - id: 1
+          - id: !anything
             author: testuser
             content: that's super cool
             posted: !anything
   - name: Make sure an authenticated comment can be posted
     request:
-      url: http://localhost/comments/new/article/1
+      url: http://localhost/comments/new/article/7b64e820-6df0-11e9-b6c5-000000000000
       auth:
         - testuser
         - testuser
@@ -40,23 +40,23 @@ stages:
       headers:
         content-type: application/json
       body:
-        article_id: /article/1
+        article_id: /article/7b64e820-6df0-11e9-b6c5-000000000000
         comments:
-          - id: 15
+          - id: !anything
             author: testuser
             content: this is a test authed comment
             posted: !anything
-          - id: 14 
+          - id: !anything 
             author: Anonymous Coward
             content: this is a test comment
             posted: !anything
-          - id: 1
+          - id: !anything
             author: testuser
             content: that's super cool
             posted: !anything
   - name: Make sure comments are retrieved in order
     request:
-      url: http://localhost/comments/3/article/1
+      url: http://localhost/comments/3/article/7b64e820-6df0-11e9-b6c5-000000000000
       method: GET
       headers:
         content-type: application/json
