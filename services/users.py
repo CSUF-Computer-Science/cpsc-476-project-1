@@ -34,7 +34,7 @@ def authReq(originalURI):
 
 @app.route('/auth')
 def authorize():
-     authType = authReq(request.headers['X-Original-URI'])
+     authType = authReq(request.headers.get('X-Original-URI', request.path))
 
      if authType and not authType.authenticate():
           resp=jsonify({'status': 'Unauthorized user'})
@@ -50,7 +50,7 @@ def authorize():
 def not_found(error=None):
     message = {
         'status': 404,
-        'message': 'Not Found: ' + request.url,
+        'message': 'Not Found: ' + request.headers.get('X-Original-URI', request.path),
     }
     resp = jsonify(message)
     resp.status_code = 404
@@ -60,7 +60,7 @@ def not_found(error=None):
 def conflict(error=None):
     message = {
         'status': 409,
-        'message': 'Error: Conflict at ' + request.url +' Code '+ error.message
+        'message': 'Error: Conflict at ' + request.headers.get('X-Original-URI', request.path) +' Code '+ error.message
     }
     resp = jsonify(message)
     resp.status_code = 409

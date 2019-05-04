@@ -13,7 +13,7 @@ db.init_app(app)
 def not_found(error=None):
     message = {
         'status': 404,
-        'message': 'Not Found: ' + request.headers['X-Original-URI'],
+        'message': 'Not Found: ' + request.headers.get('X-Original-URI', request.path),
     }
     resp = jsonify(message)
     resp.status_code = 404
@@ -23,7 +23,7 @@ def not_found(error=None):
 def conflict(error=None):
     message = {
         'status': 409,
-        'message': 'Error: Conflict at ' + request.headers['X-Original-URI'] +' Code '+ str(error)
+        'message': 'Error: Conflict at ' + request.headers.get('X-Original-URI', request.path) +' Code '+ str(error)
     }
     resp = jsonify(message)
     resp.status_code = 409

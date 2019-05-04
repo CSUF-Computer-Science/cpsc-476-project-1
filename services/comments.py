@@ -30,23 +30,14 @@ def conflict(error=None):
     resp.status_code = 409
     return resp
 
-@app.route('/comments/article/<id>', methods = ['GET', 'DELETE'])
+@app.route('/comments/article/<uuid:id>', methods = ['GET', 'DELETE'])
 def comments(id):
     #get number of comments connected to an article
     if request.method == 'GET':
         mydb = db.get_db(SERVICE_NAME)
-        
-        try:
-            uuid.UUID(id)
-        except:
-            resp = jsonify({
-                'error': 'invalid UUID provided'
-            })
-            resp.status_code = 400
-            return resp
 
         try: 
-            results = mydb.execute(mydb.prepare("SELECT COUNT(*) FROM comments WHERE article=?"), [uuid.UUID(id)])
+            results = mydb.execute(mydb.prepare("SELECT COUNT(*) FROM comments WHERE article=?"), [id])
         except:
             e=sys.exc_info()[0]
             return conflict(e)
@@ -70,16 +61,16 @@ def comments(id):
             return resp
         else:
             try:
-                mydb.execute(mydb.prepare('DELETE FROM comments WHERE article=? AND id=?'), [uuid.UUID(id), uuid.UUID(comment_id)])
+                mydb.execute(mydb.prepare('DELETE FROM comments WHERE article=? AND id=? AND author=?'), [id, uuid.UUID(comment_id), auth.getUser()])
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
             try: 
-                comments = mydb.execute(mydb.prepare("SELECT id, author, content, article, posted  FROM comments WHERE article=? ORDER BY id DESC"), [uuid.UUID(id)])
+                comments = mydb.execute(mydb.prepare("SELECT id, author, content, article, posted  FROM comments WHERE article=? ORDER BY id DESC"), [id])
             except:
                 e=sys.exc_info()[0]
                 return conflict(e)
-            article_id = "/article/"+id
+            article_id = "/article/"+str(id)
             results = {'article_id': article_id,
                        'comments': []}
             for row in comments:
@@ -101,7 +92,7 @@ def comments(id):
 
         
 #post comment to an article
-@app.route('/comments/new/article/<id>', methods = ['POST'])
+@app.route('/comments/new/article/<uuid:id>', methods = ['POST'])
 def post_comment(id):
     mydb = db.get_db(SERVICE_NAME)
     content = request.get_json()
@@ -114,16 +105,16 @@ def post_comment(id):
         return resp 
     else:
         try:
-            mydb.execute(mydb.prepare('INSERT INTO comments(id, posted, author, content, article) VALUES (now(), toTimestamp(now()), ?,?,?)'), [user, body, uuid.UUID(id)])
+            mydb.execute(mydb.prepare('INSERT INTO comments(id, posted, author, content, article) VALUES (now(), toTimestamp(now()), ?,?,?)'), [user, body, id])
         except:
             e=sys.exc_info()[0]
             return conflict(e)
         try:
-            comments = mydb.execute(mydb.prepare("SELECT id,author,content,posted FROM comments WHERE article=? ORDER BY id DESC"), [uuid.UUID(id)])
+            comments = mydb.execute(mydb.prepare("SELECT id,author,content,posted FROM comments WHERE article=? ORDER BY id DESC"), [id])
         except:
             e=sys.exc_info()[0]
             return conflict(e)
-        article_id = "/article/"+ id
+        article_id = "/article/"+ str(id)
         location = article_id + "/comments/"
         results = {'article_id': article_id,
                     'comments': []}
@@ -142,11 +133,11 @@ def post_comment(id):
         
 
 #get n most recent article comments.
-@app.route('/comments/<number>/article/<id>', methods=['GET'])
+@app.route('/comments/<number>/article/<uuid:id>', methods=['GET'])
 def getComments(id, number):
     mydb = db.get_db(SERVICE_NAME)
     try:
-        results = mydb.execute("SELECT id, author, content, article, posted FROM comments WHERE article=%s ORDER BY id DESC LIMIT %s", (uuid.UUID(id), int(number)))
+        results = mydb.execute("SELECT id, author, content, article, posted FROM comments WHERE article=%s ORDER BY id DESC LIMIT %s", (id, int(number)))
     except:
         e=sys.exc_info()[0]
         return conflict(e)
