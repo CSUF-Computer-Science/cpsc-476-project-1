@@ -112,7 +112,9 @@ def collect_article(recent_articles):
             message = jsonify({"error":"not going to attempt to retrieve zero articles"})
             message.status_code = 404
             return message
-        for row in db.execute(db.prepare("SELECT id, title, content, author, posted FROM articles LIMIT ?;"), [recent_articles,]):
+        articles = list(db.execute("SELECT id, title, content, author, posted FROM articles"))
+        articles.sort(key=lambda post: post.posted, reverse=True)
+        for row in articles[0:recent_articles]:
             collect.append({
                 "url" : "/article/"+str(row[0]),
                 "title" : row[1],
@@ -133,16 +135,16 @@ def meta_articles(recent_articles):
                 message = jsonify({"error":"not going to attempt to retrieve zero articles"})
                 message.status_code = 404
                 return message
-            for row in db.execute(db.prepare("SELECT id, title, content, author, posted FROM articles LIMIT ?;"), [recent_articles,]):
-                if row != None:
-                    collect.append({
-                            "url" : "<url>http://localhost/article/"+str(row[0])+"</url>",
-                            "title" : "<title>"+row[1]+"</title>",
-                            "author" : "<author>"+row[3]+"</author>",
-                            "posted" : "<pubDate>"+row[4]+"</pubDate>",
-                            "comments" : "<comments>http://localhost/article/"+str(row[0])+"/comments</comments>",
-                            "category" : "<category>http://localhost/article/"+str(row[0])+"/tags</category>"
-                        })
+            articles = list(db.execute("SELECT id, title, content, author, posted FROM articles"))
+            for row in articles[0:recent_articles]:
+                collect.append({
+                    "url" : "<url>http://localhost/article/"+str(row[0])+"</url>",
+                    "title" : "<title>"+row[1]+"</title>",
+                    "author" : "<author>"+row[3]+"</author>",
+                    "posted" : "<pubDate>"+str(row[4])+"</pubDate>",
+                    "comments" : "<comments>http://localhost/article/"+str(row[0])+"/comments</comments>",
+                    "category" : "<category>http://localhost/article/"+str(row[0])+"/tags</category>"
+                })
             message = jsonify({"success":collect})
             message.status_code = 200
             return message
