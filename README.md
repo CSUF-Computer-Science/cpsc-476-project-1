@@ -64,16 +64,16 @@ Using [Tuffix](https://github.com/kevinwortman/tuffix)? You'll also need this: `
 
 All microservices can be started in a formation using the following command
 
-`foreman start -m users=3,articles=3,tags=3,comments=3`
+`foreman start -m users=3,articles=3,tags=3,comments=3,rss=3`
 
 ### Networking
-
 | Service  | Port  |
 |----------|-------|
 | Articles | :500n |
 | Tags     | :510n |
 | Comments | :520n |
 | Users    | :530n |
+| RSS	   | :540n |
 
 *n indicates the individual instance of the microservice running in a formation. For three instances of the Users service, the instances should be running on ports 5300-5302.*
 

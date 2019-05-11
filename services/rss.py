@@ -30,7 +30,7 @@ def latest_articles():
                 items = article_collection
             )
         return feed.rss()
-        
+
 @app.route("/rss/feed", methods=['GET'])
 def feed_articles():
     if flask_request.method == 'GET':
@@ -51,10 +51,10 @@ def feed_articles():
                     articleItem.title = articleInfo['title']
                     articleItem.author = articleInfo['author']
                     articleItem.description = articleInfo['content']
-                response = requests.get(f'http://localhost/article/{article_id}/tags')
+                response = requests.get(f'http://localhost/tags/article/{article_id}')
                 if response.status_code == requests.codes.ok:
                     articleItem.categories = response.json()['tags']
-                response = requests.get(f'http://localhost/article/{article_id}/comments')
+                response = requests.get(f'http://localhost/comments/article/{article_id}')
                 if response.status_code == requests.codes.ok:
                     articleItem.comments = response.json()['count']
                 article_collection.append(articleItem)
