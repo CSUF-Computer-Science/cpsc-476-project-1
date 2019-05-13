@@ -1,6 +1,7 @@
 import sys, os, uuid, cassandra
 from flask import Flask, jsonify, request
 from .data import db, auth
+from werkzeug.http import http_date
 
 SERVICE_NAME = os.path.splitext(os.path.basename(__file__))[0]
 
@@ -20,6 +21,16 @@ def not_found(error=None):
     resp.status_code = 404
     return resp
 
+@app.errorhandler(304)
+def not_modified(error=None):
+    message = {
+        'status': 304,
+        'message': 'Not Modified.',
+    }
+    resp = jsonify(message)
+    resp.status_code = 304
+    return resp
+
 @app.errorhandler(409)
 def conflict(error=None):
     message = {
@@ -35,20 +46,35 @@ def comments(id):
     #get number of comments connected to an article
     if request.method == 'GET':
         mydb = db.get_db(SERVICE_NAME)
-
         try: 
             results = mydb.execute(mydb.prepare("SELECT COUNT(*) FROM comments WHERE article=?"), [id])
+            lastComment = mydb.execute("SELECT id, author, content, article, posted FROM comments WHERE article=%s ORDER BY id DESC LIMIT %s", (id, int(1)))
         except:
             e=sys.exc_info()[0]
             return conflict(e)
-        if results[0][0]>0:
+        #if a comments have been deleted and there is no most recent posting time then current time is used.
+        last_modified=http_date(lastComment[0][4])
+        modified_since=request.headers['If-Modified-Since']
+
+        def send_results():
             resp = jsonify({
                 "count": results[0][0]
             })
+            
+            resp.headers['Last-Modified']=last_modified
             resp.status_code = 200
-            return resp
-        else:
-            return not_found()
+            return resp        
+        
+        if results[0][0]>0 :
+            if modified_since==last_modified: #if there are results,they asked about modifications but none were made return not modified
+                return not_modified()
+            else:
+                return results()    #if there are results send em as long as they didn't have a matching if modified since
+        else: #no results
+            if modified_since>0: #but they asked so maybe there were results before that have been deleted. Send em the count of zero.
+                return send_results
+            else:
+                return not_found() #no results, they didn't ask about modifications, send none found.
             
     #remove a comment on an article
     elif request.method == 'DELETE':
@@ -143,7 +169,10 @@ def getComments(id, number):
         return conflict(e)
 
     results = list(results)
-    if len(results) > 0:
+    modified_since=request.headers['If-Modified-Since']
+    last_modified=http_date(results[0][4])
+
+    def send_results():
         out = {
             "count": len(results),
             "comments": []
@@ -157,8 +186,18 @@ def getComments(id, number):
                 "posted": row[4],
             })
         resp = jsonify(out)
+        resp.headers['Last-Modified']=last_modified
         resp.status_code = 200
         return resp
-    else:
-        return not_found()
+
+    if len(results) > 0:
+        if modified_since ==last_modified: #if they asked and it wasnt modified then return not modified else return results
+            return not_modified()
+        else:
+            return send_results()
+    else: #no results
+        if modified_since>0:
+            return send_results()
+        else:
+            return not_found()
 

@@ -1,6 +1,7 @@
 import base64, os, uuid
 from flask import Flask, request, jsonify
 from .data import db as database, auth
+from werkzeug.http import http_date
 app = Flask(__name__)
 
 SERVICE_NAME = os.path.splitext(os.path.basename(__file__))[0]
@@ -17,6 +18,16 @@ def not_found(error=None):
     }
     resp = jsonify(message)
     resp.status_code = 404
+    return resp
+
+@app.errorhandler(304)
+def not_modified(error=None):
+    message = {
+        'status': 304,
+        'message': 'Not Modified.',
+    }
+    resp = jsonify(message)
+    resp.status_code = 304
     return resp
 
 @app.errorhandler(409)
@@ -56,19 +67,26 @@ def new_article():
 def find_article(article_id):
     if request.method == 'GET':
         db = database.get_db(SERVICE_NAME)
-        for row in db.execute(db.prepare("SELECT title, content, author, posted FROM articles where id=?"), [article_id,]):
-            if row != None:
-                message = jsonify({
-                    "title" : row[0],
-                    "content" : row[1],
-                    "author" : row[2],
-                    "posted" : row[3]
-                })
-                message.status_code = 200
-                return message
-        message = jsonify({"error":"the article you are looking for is not here"})
-        message.status_code = 404
-        return message
+        results=db.execute(db.prepare("SELECT title, content, author, posted FROM articles where id=?"), [article_id,])
+        last_modified=http_date(results[0][3])
+        modified_since=request.headers['If-Modified-Since']
+
+        if len(results) >0:
+            if modified_since==last_modified:
+                return not_modified()
+            else:
+                for row in results:
+                    message = jsonify({
+                        "title" : row[0],
+                        "content" : row[1],
+                        "author" : row[2],
+                        "posted" : row[3]
+                    })
+                    message.status_code = 200
+                    message.headers['Last-Modified']=last_modified
+                    return message
+        else:
+            return not_found()
 
 @app.route('/article/delete/<uuid:article_id>', methods=['DELETE'])
 def delete_article(article_id):
@@ -112,39 +130,58 @@ def collect_article(recent_articles):
             message = jsonify({"error":"not going to attempt to retrieve zero articles"})
             message.status_code = 404
             return message
-        articles = list(db.execute("SELECT id, title, content, author, posted FROM articles"))
-        articles.sort(key=lambda post: post.posted, reverse=True)
-        for row in articles[0:recent_articles]:
-            collect.append({
-                "url" : "/article/"+str(row[0]),
-                "title" : row[1],
-                "content" : row[2],
-                "author" : row[3],
-                "posted" : row[4]
-            })
-        message = jsonify({"success":collect})
-        message.status_code = 200
-        return message
+        else:
+            articles = list(db.execute("SELECT id, title, content, author, posted FROM articles"))
+            articles.sort(key=lambda post: post.posted, reverse=True)
+            last_modified=http_date(articles[0][4])
+            modified_since=request.headers['If-Modified-Since']
+            if len(articles)>0:
+                if modified_since==last_modified:
+                    return not_modified()
+                else:
+                    for row in articles[0:recent_articles]:
+                        collect.append({
+                            "url" : "/article/"+str(row[0]),
+                            "title" : row[1],
+                            "content" : row[2],
+                            "author" : row[3],
+                            "posted" : row[4]
+                        })
+                    message = jsonify({"success":collect})
+                    message.status_code = 200
+                    message.headers['Last-Modified']=last_modified
+                    return message
+            else:
+                return not_found()
 
 @app.route('/article/meta/<int:recent_articles>', methods=['GET'])
 def meta_articles(recent_articles):
     if request.method == 'GET':
-            db = database.get_db(SERVICE_NAME)
-            collect = list()
-            if recent_articles == 0:
-                message = jsonify({"error":"not going to attempt to retrieve zero articles"})
-                message.status_code = 404
-                return message
-            articles = list(db.execute("SELECT id, title, content, author, posted FROM articles"))
-            for row in articles[0:recent_articles]:
-                collect.append({
-                    "url" : "<url>http://localhost/article/"+str(row[0])+"</url>",
-                    "title" : "<title>"+row[1]+"</title>",
-                    "author" : "<author>"+row[3]+"</author>",
-                    "posted" : "<pubDate>"+str(row[4])+"</pubDate>",
-                    "comments" : "<comments>http://localhost/article/"+str(row[0])+"/comments</comments>",
-                    "category" : "<category>http://localhost/article/"+str(row[0])+"/tags</category>"
-                })
-            message = jsonify({"success":collect})
-            message.status_code = 200
+        db = database.get_db(SERVICE_NAME)
+        collect = list()
+        if recent_articles == 0:
+            message = jsonify({"error":"not going to attempt to retrieve zero articles"})
+            message.status_code = 404
             return message
+        else:
+            articles = list(db.execute("SELECT id, title, content, author, posted FROM articles"))
+            last_modified=http_date(articles[0][4])
+            modified_since=request.headers['If-Modified-Since']
+            if len(articles)>0:
+                if modified_since==last_modified:
+                    return not_modified()
+                else:
+                    for row in articles[0:recent_articles]:
+                        collect.append({
+                            "url" : "<url>http://localhost/article/"+str(row[0])+"</url>",
+                            "title" : "<title>"+row[1]+"</title>",
+                            "author" : "<author>"+row[3]+"</author>",
+                            "posted" : "<pubDate>"+str(row[4])+"</pubDate>",
+                            "comments" : "<comments>http://localhost/article/"+str(row[0])+"/comments</comments>",
+                            "category" : "<category>http://localhost/article/"+str(row[0])+"/tags</category>"
+                        })
+                    message = jsonify({"success":collect})
+                    message.status_code = 200
+                    return message
+            else:
+                return not_found()
