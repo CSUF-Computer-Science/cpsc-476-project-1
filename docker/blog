@@ -1,3 +1,5 @@
+proxy_cache_path /var/cache/nginx keys_zone=users:10m;
+
 server {
 	listen 80 default_server;
 	listen [::]:80 default_server;
@@ -20,6 +22,10 @@ server {
 		proxy_pass_request_body off;
 		proxy_set_header Content-Length "";
 		proxy_set_header X-Original-URI $request_uri;
+
+		proxy_cache users;
+		proxy_cache_key $http_authorization;
+		proxy_cache_valid 5m;
 	}
 
 	location /article {
@@ -51,6 +57,8 @@ server {
 	}
 
 	location /rss {
+		auth_request /auth;
+		auth_request_set $auth_status $upstream_status;
 		proxy_pass http://rss;
 		proxy_set_header X-Original-URI $request_uri;
 	}
@@ -69,19 +77,19 @@ upstream tags {
 }
 
 upstream comments {
-	server localhost:5200;
-	server localhost:5201;
-	server localhost:5202;
+	server 127.0.0.1:5200;
+	server 127.0.0.1:5201;
+	server 127.0.0.1:5202;
 }
 
 upstream user {
-	server localhost:5300;
-	server localhost:5301;
-	server localhost:5302;
+	server 127.0.0.1:5300;
+	server 127.0.0.1:5301;
+	server 127.0.0.1:5302;
 }
 
 upstream rss {
-	server localhost:5400;
-	server localhost:5401;
-	server localhost:5402;
+	server 127.0.0.1:5400;
+	server 127.0.0.1:5401;
+	server 127.0.0.1:5402;
 }

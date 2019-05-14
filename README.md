@@ -97,3 +97,40 @@ API documentation is avaialble on our [Postman page](https://documenter.getpostm
 `py.test`
 
 This will execute all tests in the `tests` directory in alphabetical order and has been tested to work with the default testing database.
+
+
+### Siege
+Noticed that the number of transactions was lower once caching was implemented, since it did not require the user to be sent to our authentication uri.
+This had almost reduced the load by half.
+
+To run:
+
+`siege --concurrent=25 --time=1m --header="Authorization: testuser" localhost/rss/feed`
+
+#### Without Cache
+Transaction: 282 hits
+Availibility: 100.0%
+Elapsed time: 59.17 secs
+Data Transferred: 1.00 mB
+Response Time: 4.96 secs
+Transaction Rate: 4.77 txs/sec
+Throughput: 0.02 MB/sec
+Concurrency 23.66
+Successful transactions: 282
+Failed transactions: 0
+Longest transaction: 5.99
+Shortest transaction: 3.87
+
+#### With Cache
+Transaction: 183 hits
+Availibility: 100.0%
+Elapsed time: 59.02 secs
+Data Transferred: 0.20 mB
+Response Time: 7.53 secs
+Transaction Rate: 3.10 txs/sec
+Throughput: 0.00 MB/sec
+Concurrency 23.36
+Successful transactions: 183
+Failed transactions: 0
+Longest transaction: 10.50
+Shortest transaction: 5.66
