@@ -24,7 +24,7 @@ def latest_articles():
                 )
             feed = Feed(
                 title = "New Kids On The Blog RSS Feed",
-                link = "https://localhost/rss/summary",
+                link = "http://localhost/rss/summary",
                 description = "RSS 2.0 feed generated with rfeed",
                 language = "en-US",
                 items = article_collection
@@ -42,7 +42,7 @@ def feed_articles():
                 article_id = article['url'].split('/')[-1]
                 articleItem = Item(
                     title = article['title'],
-                    link = f'https://localhost/article/{article_id}',
+                    link = f'http://localhost/article/{article_id}',
                     pubDate = datetime.datetime.strptime(article['posted'], "%a, %d %b %Y %H:%M:%S %Z")
                     )
                 response = requests.get(f'http://localhost/article/{article_id}')
