@@ -47,7 +47,7 @@ Using [Tuffix](https://github.com/kevinwortman/tuffix)? You'll also need this: `
 
 `sudo apt install nginx nginx-extras`
 
-#### 6) create a cache folder for Nginx to store auth cache files:
+#### 6) Create a cache folder for Nginx to store auth cache files:
 
 `sudo mkdir -p /var/cache/nginx`
 
