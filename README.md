@@ -47,16 +47,21 @@ Using [Tuffix](https://github.com/kevinwortman/tuffix)? You'll also need this: `
 
 `sudo apt install nginx nginx-extras`
 
-#### 6) Delete default port 80 file
+#### 6) create a cache folder for Nginx to store auth cache files:
+
+`sudo mkdir -p /var/cache/nginx`
+
+#### 7) Delete default port 80 file
+
 `sudo rm /etc/nginx/sites-enabled/default`
 
-#### 7) Copy blog file from project to your Nginx sites-available directory. Create a symlink to the sites-enabled and restart Nginx service:
+#### 8) Copy blog file from project to your Nginx sites-available directory. Create a symlink to the sites-enabled and restart Nginx service:
 
 `sudo cp blog /etc/nginx/sites-available`<br />
 `sudo ln -s /etc/nginx/sites-available/blog /etc/nginx/sites-enabled/blog`<br />
 `sudo service nginx restart`
 
-#### 8) Finally, the database must be initialized. From the top-level directory run the following command:
+#### 9) Finally, the database must be initialized. From the top-level directory run the following command:
 
 `foreman run init-db`
 
