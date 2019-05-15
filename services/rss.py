@@ -60,7 +60,7 @@ def feed_articles():
                     articleItem.title = articleInfo['title']
                     articleItem.author = articleInfo['author']
                     articleItem.description = articleInfo['content']
-                response = sess.get(f'http://localhost/tags/article/{article_id}')
+                response = sess.get(f'http://localhost/tags/all/article/{article_id}')
                 if response.status_code == requests.codes.ok:
                     articleItem.categories = response.json()['tags']
                 response = sess.get(f'http://localhost/comments/article/{article_id}')
