@@ -100,59 +100,59 @@ This will execute all tests in the `tests` directory in alphabetical order and h
 
 
 ### Siege
-Noticed that the number of transactions was lower once caching was implemented, since it did not require the user to be sent to our authentication uri.
-This had almost reduced the load by half.
+Number of transactions is higher with cache implementation, allowing for more connections to come through since the server does less work returning data.
 
 #### To Run
 
 `siege --concurrent=25 --time=1m --header="Authorization: testuser" localhost/rss/feed`
 
 #### Without Cache
-Transaction: 282 hits
+Transactions:		        1003 hits
 
-Availibility: 100.0%
+Availability:		      100.00 %
 
-Elapsed time: 59.17 secs
+Elapsed time:		       59.61 secs
 
-Data Transferred: 1.00 mB
+Data transferred:	        3.56 MB
 
-Response Time: 4.96 secs
+Response time:		        1.47 secs
 
-Transaction Rate: 4.77 txs/sec
+Transaction rate:	       16.83 trans/sec
 
-Throughput: 0.02 MB/sec
+Throughput:		        0.06 MB/sec
 
-Concurrency 23.66
+Concurrency:		       24.68
 
-Successful transactions: 282
+Successful transactions:        1003
 
-Failed transactions: 0
+Failed transactions:	           0
 
-Longest transaction: 5.99
+Longest transaction:	        2.13
 
-Shortest transaction: 3.87
+Shortest transaction:	        1.04
+
 
 #### With Cache
-Transaction: 183 hits
+Transactions:                1404 hits
 
-Availibility: 100.0%
+Availability:              100.00 %
 
-Elapsed time: 59.02 secs
+Elapsed time:               59.29 secs
 
-Data Transferred: 0.20 mB
+Data transferred:            5.71 MB
 
-Response Time: 7.53 secs
+Response time:                1.04 secs
 
-Transaction Rate: 3.10 txs/sec
+Transaction rate:           23.68 trans/sec
 
-Throughput: 0.00 MB/sec
+Throughput:                0.10 MB/sec
 
-Concurrency 23.36
+Concurrency:               24.69
 
-Successful transactions: 183
+Successful transactions:        1404
 
-Failed transactions: 0
+Failed transactions:               0
 
-Longest transaction: 10.50
+Longest transaction:            3.53
 
-Shortest transaction: 5.66
+Shortest transaction:            0.17
